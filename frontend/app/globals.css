@@ -1,0 +1,78 @@
+:root {
+  --bg: #050b14;
+  --panel: rgba(10, 21, 38, 0.84);
+  --panel-soft: rgba(14, 28, 47, 0.72);
+  --line: rgba(94, 242, 255, 0.18);
+  --text: #eef8ff;
+  --muted: #9bb4ca;
+  --accent: #5ef2ff;
+  --accent-secondary: #9cffb5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(94, 242, 255, 0.12), transparent 24%),
+    radial-gradient(circle at top right, rgba(156, 255, 181, 0.08), transparent 18%),
+    linear-gradient(135deg, #02060d 0%, #07111f 52%, #0b1730 100%);
+  color: var(--text);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button:hover,
+a:hover {
+  opacity: 0.85;
+}
+button:active,
+a:active {
+  opacity: 0.7;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid #5ef2ff;
+  outline-offset: 2px;
+}
+select option {
+  color: #eef8ff;
+  background: #0b1730;
+}
+
+.page-shell {
+  min-height: 100vh;
+  padding: 32px;
+}
+
+.glass {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.24);
+}
+
+.skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
