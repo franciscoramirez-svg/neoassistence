@@ -108,6 +108,16 @@ export default function ReportesPage() {
   const totalPaginas = Math.ceil(registrosFiltrados.length / POR_PAGINA);
   const registrosPagina = registrosFiltrados.slice(pagina * POR_PAGINA, (pagina + 1) * POR_PAGINA);
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://192.168.1.85:8000/api";
+
+  const exportarExcel = () => {
+    const params = new URLSearchParams();
+    if (filtroFechaInicio) params.set("fecha_inicio", filtroFechaInicio);
+    if (filtroFechaFin) params.set("fecha_fin", filtroFechaFin);
+    if (filtroSucursal) params.set("sucursal_id", filtroSucursal);
+    window.open(`${API_URL}/records/export/excel?${params.toString()}`, "_blank");
+  };
+
   const exportarCSV = () => {
     const headers = ["Fecha/Hora", "Empleado", "Tipo", "Estatus", "Justificación"];
     const rows = registrosFiltrados.map(r => [
@@ -221,10 +231,13 @@ export default function ReportesPage() {
       <section className="glass" style={{ padding: 24 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <h2 style={{ margin: 0 }}>Registros ({registrosFiltrados.length})</h2>
-          <div style={{display:"flex",gap:12}}>
+          <div style={{display:"flex",gap:12,flexWrap:"wrap",alignItems:"center"}}>
             <Link href="/reportes-auto" style={{padding:"8px 16px",borderRadius:10,border:"1px solid rgba(156,255,181,0.3)",background:"rgba(156,255,181,0.1)",color:"#9cffb5",textDecoration:"none"}}>📧 Auto-Reporte</Link>
             <button onClick={exportarCSV} style={{ padding: "10px 16px", borderRadius: 10, border: "1px solid rgba(94,242,255,0.28)", background: "linear-gradient(135deg, rgba(94,242,255,0.14), rgba(156,255,181,0.08))", color: "white", cursor: "pointer" }}>
-              📥 Exportar CSV
+              📥 CSV
+            </button>
+            <button onClick={exportarExcel} style={{ padding: "10px 16px", borderRadius: 10, border: "1px solid rgba(156,255,181,0.28)", background: "linear-gradient(135deg, rgba(156,255,181,0.14), rgba(94,242,255,0.08))", color: "white", cursor: "pointer" }}>
+              📊 Excel
             </button>
           </div>
         </div>
