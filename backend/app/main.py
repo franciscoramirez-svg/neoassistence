@@ -7,19 +7,26 @@ import os, asyncio
 from app.api.routes import auth, health, records, branches, employees
 from app.api.routes import reports, notifications
 from app.api.routes import debug, yts, penalizacion, push
-from app.api.routes import incidencias, permisos, nomina
+from app.api.routes import incidencias, permisos, nomina, analytics
 from app.core.config import settings
 
 
 async def auto_close_loop():
-    """Ejecuta auto-close cada 60 minutos"""
+    """Ejecuta auto-close y alertas de retardos cada 60 minutos"""
     while True:
         try:
             from app.api.routes.penalizacion import auto_close_open_entries
             result = auto_close_open_entries()
             print(f"[CRON] Auto-close: {result.get('cerrados', 0)} cerrados, {result.get('errores', 0)} errores")
         except Exception as e:
-            print(f"[CRON] Error: {e}")
+            print(f"[CRON] Auto-close error: {e}")
+        try:
+            from app.api.routes.analytics import check_retardo_thresholds
+            alert_result = check_retardo_thresholds()
+            if alert_result["alertas"] > 0:
+                print(f"[CRON] Alertas enviadas: {alert_result['alertas']}")
+        except Exception as e:
+            print(f"[CRON] Alerta error: {e}")
         await asyncio.sleep(3600)
 
 
@@ -71,6 +78,7 @@ app.include_router(push.router, prefix="/api")
 app.include_router(incidencias.router, prefix="/api")
 app.include_router(permisos.router, prefix="/api")
 app.include_router(nomina.router, prefix="/api")
+app.include_router(analytics.router, prefix="/api")
 
 
 @app.get("/")

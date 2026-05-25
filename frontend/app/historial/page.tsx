@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiRequest } from "@/lib/api";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, LineChart, Line, ResponsiveContainer } from "recharts";
 
 function getStoredUser() {
   if (typeof window === "undefined") return null;
@@ -15,10 +16,11 @@ export default function HistorialPage() {
   const router = useRouter();
   const [user, setUser] = useState(getStoredUser);
   const [mounted, setMounted] = useState(false);
-  const [tab, setTab] = useState<"records" | "permisos" | "incidencias">("records");
+  const [tab, setTab] = useState<"records" | "permisos" | "incidencias" | "puntualidad">("records");
   const [records, setRecords] = useState<any[]>([]);
   const [permisos, setPermisos] = useState<any[]>([]);
   const [incidencias, setIncidencias] = useState<any[]>([]);
+  const [puntualidad, setPuntualidad] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { setMounted(true); }, []);
@@ -31,10 +33,12 @@ export default function HistorialPage() {
       apiRequest<any[]>("/records").then(r => (r as any)?.data?.items || []).catch(() => []),
       apiRequest<any[]>(`/permisos?empleado=${user.name}`).catch(() => []),
       apiRequest<any[]>(`/incidencias?empleado=${user.name}`).catch(() => []),
-    ]).then(([rec, per, inc]) => {
+      apiRequest<{ data: any[] }>(`/analytics/historial-puntualidad?empleado=${encodeURIComponent(user.name)}`).then(r => r.data || []).catch(() => []),
+    ]).then(([rec, per, inc, pun]) => {
       setRecords(rec.filter((r: any) => r.empleado === user.name));
       setPermisos(per || []);
       setIncidencias(inc || []);
+      setPuntualidad(pun);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [user]);
@@ -45,6 +49,10 @@ export default function HistorialPage() {
 
   return (
     <main className="page-shell">
+      <style>{`
+        .tab-btn { flex:1; padding:10px; border-radius:10px; cursor:pointer; font-size:12px; transition:all 0.2s; }
+        .tab-btn:hover { background:rgba(94,242,255,0.08); }
+      `}</style>
       <nav style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 0",marginBottom:8}}>
         <Link href={goBack} style={{color:"#5ef2ff",fontSize:13,textDecoration:"none"}}>← Volver</Link>
         <button onClick={()=>{localStorage.removeItem("neoassistence_user");router.push("/login")}} style={{background:"none",border:"none",color:"#ff8c9e",cursor:"pointer"}}>Cerrar sesión</button>
@@ -55,15 +63,14 @@ export default function HistorialPage() {
         <h1 style={{margin:"8px 0"}}>{user.name}</h1>
       </div>
 
-      <div style={{display:"flex",gap:8,marginBottom:20}}>
-        {(["records", "permisos", "incidencias"] as const).map(t => (
-          <button key={t} onClick={() => setTab(t)} style={{
-            flex:1, padding:"10px", borderRadius:10,
+      <div style={{display:"flex",gap:6,marginBottom:20,flexWrap:"wrap"}}>
+        {(["records", "permisos", "incidencias", "puntualidad"] as const).map(t => (
+          <button key={t} className="tab-btn" onClick={() => setTab(t)} style={{
             border: tab === t ? "1px solid rgba(94,242,255,0.4)" : "1px solid rgba(255,255,255,0.1)",
             background: tab === t ? "rgba(94,242,255,0.12)" : "transparent",
-            color: tab === t ? "#5ef2ff" : "#9bb4ca", cursor:"pointer", fontSize:13
+            color: tab === t ? "#5ef2ff" : "#9bb4ca",
           }}>
-            {t === "records" ? "📋 Asistencia" : t === "permisos" ? "🏖️ Permisos" : "⚠️ Incidencias"}
+            {t === "records" ? "📋 Asistencia" : t === "permisos" ? "🏖️ Permisos" : t === "incidencias" ? "⚠️ Incidencias" : "📈 Puntualidad"}
           </button>
         ))}
       </div>
@@ -117,7 +124,7 @@ export default function HistorialPage() {
               </table>
             </div>
           )
-        ) : (
+        ) : tab === "incidencias" ? (
           incidencias.length === 0 ? <p style={{color:"#9bb4ca",textAlign:"center"}}>Sin incidencias</p> : (
             <div style={{overflowX:"auto"}}>
               <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
@@ -138,6 +145,45 @@ export default function HistorialPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )
+        ) : (
+          puntualidad.length === 0 ? <p style={{color:"#9bb4ca",textAlign:"center"}}>Sin datos de puntualidad</p> : (
+            <div>
+              <div style={{marginBottom:20}}>
+                <h3 style={{margin:"0 0 8px",color:"#9bb4ca",fontSize:14}}>Evolución mensual de puntualidad</h3>
+                <ResponsiveContainer width="100%" height={250}>
+                  <LineChart data={puntualidad}>
+                    <XAxis dataKey="mes" tick={{fill:"#9bb4ca",fontSize:11}} axisLine={false} tickLine={false} />
+                    <YAxis tick={{fill:"#9bb4ca",fontSize:11}} axisLine={false} tickLine={false} unit="%" domain={[0, 100]} />
+                    <Tooltip contentStyle={{background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",borderRadius:8,color:"white"}}
+                      formatter={(value: any) => [`${value}%`, "Puntualidad"]} />
+                    <Line type="monotone" dataKey="puntualidad_pct" stroke="#9cffb5" strokeWidth={2} dot={{fill:"#9cffb5",r:4}} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+              <div style={{overflowX:"auto"}}>
+                <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
+                  <thead><tr style={{borderBottom:"1px solid rgba(94,242,255,0.15)"}}>
+                    <th style={{textAlign:"left",padding:"8px",color:"#9bb4ca",fontWeight:500}}>Mes</th>
+                    <th style={{textAlign:"center",padding:"8px",color:"#9bb4ca",fontWeight:500}}>Total</th>
+                    <th style={{textAlign:"center",padding:"8px",color:"#9bb4ca",fontWeight:500}}>A Tiempo</th>
+                    <th style={{textAlign:"center",padding:"8px",color:"#9bb4ca",fontWeight:500}}>Retardos</th>
+                    <th style={{textAlign:"center",padding:"8px",color:"#9bb4ca",fontWeight:500}}>% Puntualidad</th>
+                  </tr></thead>
+                  <tbody>
+                    {puntualidad.map((m: any) => (
+                      <tr key={m.mes} style={{borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
+                        <td style={{padding:"8px",color:"white"}}>{m.mes}</td>
+                        <td style={{padding:"8px",textAlign:"center",color:"#9bb4ca"}}>{m.total_registros}</td>
+                        <td style={{padding:"8px",textAlign:"center",color:"#9cffb5"}}>{m.a_tiempo}</td>
+                        <td style={{padding:"8px",textAlign:"center",color:m.retardos > 0 ? "#ff8c9e" : "#9bb4ca"}}>{m.retardos}</td>
+                        <td style={{padding:"8px",textAlign:"center",color:m.puntualidad_pct >= 90 ? "#9cffb5" : m.puntualidad_pct >= 70 ? "#ffcc5e" : "#ff8c9e",fontWeight:"bold"}}>{m.puntualidad_pct}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )
         )}
