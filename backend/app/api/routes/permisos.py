@@ -59,17 +59,23 @@ def permiso_stats():
 @router.put("/permisos/{perm_id}/resolver")
 def resolve_permiso(perm_id: str, payload: PermisoResolve):
     supabase = get_supabase()
+    perm = supabase.table("permisos").select("*").eq("id", perm_id).limit(1).execute()
+    if not perm.data:
+        raise HTTPException(status_code=404, detail="Permiso no encontrado")
+    current = perm.data[0]
+    if current.get("estatus") == payload.estatus:
+        return {"ok": True, "idempotent": True}
+
     supabase.table("permisos").update({
         "estatus": payload.estatus,
         "admin_comentario": payload.admin_comentario,
         "resuelta_at": datetime.now().isoformat(),
     }).eq("id", perm_id).execute()
 
-    perm = supabase.table("permisos").select("*").eq("id", perm_id).limit(1).execute()
     try:
         from app.api.routes.push import send_push_notification
         send_push_notification(
-            perm.data[0]["empleado_nombre"] if perm.data else "Empleado",
+            current["empleado_nombre"],
             f"Permiso {payload.estatus}",
             f"Tu permiso fue {payload.estatus}. {payload.admin_comentario}" if payload.admin_comentario else f"Tu permiso fue {payload.estatus}"
         )
@@ -78,14 +84,13 @@ def resolve_permiso(perm_id: str, payload: PermisoResolve):
 
     try:
         from app.services.auto_reports import send_notification_email
-        nombre = perm.data[0]["empleado_nombre"] if perm.data else "Empleado"
-        tipo = perm.data[0].get("tipo", "N/A") if perm.data else "N/A"
-        fechas = f"{perm.data[0].get('fecha_inicio', '')} a {perm.data[0].get('fecha_fin', '')}" if perm.data else ""
+        nombre = current["empleado_nombre"]
         send_notification_email(
             settings.smtp_user,
             f"Permiso {payload.estatus} - {nombre}",
             f"Hola {nombre},\n\nTu permiso ha sido {payload.estatus}.\n"
-            f"Tipo: {tipo}\nFechas: {fechas}\n"
+            f"Tipo: {current.get('tipo', 'N/A')}\n"
+            f"Fechas: {current.get('fecha_inicio', '')} a {current.get('fecha_fin', '')}\n"
             f"{'Comentario: ' + payload.admin_comentario if payload.admin_comentario else ''}\n\n-- NeoAssistence"
         )
     except:

@@ -63,25 +63,31 @@ def incidencia_stats():
 @router.put("/incidencias/{inc_id}/resolver")
 def resolve_incidencia(inc_id: str, payload: IncidenciaResolve):
     supabase = get_supabase()
+    inc = supabase.table("incidencias").select("*").eq("id", inc_id).limit(1).execute()
+    if not inc.data:
+        raise HTTPException(status_code=404, detail="Incidencia no encontrada")
+    current = inc.data[0]
+    if current.get("estatus") == payload.estatus:
+        return {"ok": True, "idempotent": True}
+
     supabase.table("incidencias").update({
         "estatus": payload.estatus,
         "admin_comentario": payload.admin_comentario,
         "resuelta_at": datetime.now().isoformat(),
     }).eq("id", inc_id).execute()
 
-    inc = supabase.table("incidencias").select("*").eq("id", inc_id).limit(1).execute()
-    if inc.data and payload.estatus == "aprobada":
-        reg_id = inc.data[0].get("registro_id")
+    if payload.estatus == "aprobada":
+        reg_id = current.get("registro_id")
         if reg_id:
             supabase.table("registros").update({
                 "estatus": "Justificado",
-                "justificacion": inc.data[0].get("motivo", "")
+                "justificacion": current.get("motivo", "")
             }).eq("id", reg_id).execute()
 
     try:
         from app.api.routes.push import send_push_notification
         send_push_notification(
-            inc.data[0]["empleado_nombre"] if inc.data else "Empleado",
+            current["empleado_nombre"],
             f"Incidencia {payload.estatus}",
             f"Tu incidencia fue {payload.estatus}. {payload.admin_comentario}" if payload.admin_comentario else f"Tu incidencia fue {payload.estatus}"
         )
@@ -90,12 +96,11 @@ def resolve_incidencia(inc_id: str, payload: IncidenciaResolve):
 
     try:
         from app.services.auto_reports import send_notification_email
-        nombre = inc.data[0]["empleado_nombre"] if inc.data else "Empleado"
         send_notification_email(
             settings.smtp_user,
-            f"Incidencia {payload.estatus} - {nombre}",
-            f"Hola {nombre},\n\nTu incidencia ha sido {payload.estatus}.\n"
-            f"Tipo: {inc.data[0].get('tipo', 'N/A')}\nFecha: {inc.data[0].get('fecha', 'N/A')}\n"
+            f"Incidencia {payload.estatus} - {current['empleado_nombre']}",
+            f"Hola {current['empleado_nombre']},\n\nTu incidencia ha sido {payload.estatus}.\n"
+            f"Tipo: {current.get('tipo', 'N/A')}\nFecha: {current.get('fecha', 'N/A')}\n"
             f"{'Comentario: ' + payload.admin_comentario if payload.admin_comentario else ''}\n\n-- NeoAssistence"
         )
     except:

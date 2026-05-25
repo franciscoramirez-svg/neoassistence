@@ -51,9 +51,9 @@ def test_incidencia_stats(client, mock_supabase):
 
 def test_resolve_incidencia_aprobada_with_registro(client, mock_supabase):
     mock_supabase.queue(
-        [],
         [{"id": "inc-1", "empleado_nombre": "Juan Perez", "tipo": "retardo",
-          "fecha": "2025-06-05", "registro_id": "rec-1", "motivo": "Trafico"}],
+          "fecha": "2025-06-05", "registro_id": "rec-1", "motivo": "Trafico", "estatus": "pendiente"}],
+        [],
     )
     resp = client.put("/api/incidencias/inc-1/resolver", json={
         "estatus": "aprobada",
@@ -65,20 +65,25 @@ def test_resolve_incidencia_aprobada_with_registro(client, mock_supabase):
 
 def test_resolve_incidencia_rechazada(client, mock_supabase):
     mock_supabase.queue(
-        [],
         [{"id": "inc-2", "empleado_nombre": "Maria", "tipo": "retardo",
-          "fecha": "2025-06-05", "registro_id": None, "motivo": "Olvide checar"}],
+          "fecha": "2025-06-05", "registro_id": None, "motivo": "Olvide checar", "estatus": "pendiente"}],
     )
     resp = client.put("/api/incidencias/inc-2/resolver", json={"estatus": "rechazada"})
     assert resp.status_code == 200
     assert resp.json() == {"ok": True}
 
 
-def test_resolve_incidencia_aprobada_no_registro(client, mock_supabase):
+def test_resolve_incidencia_idempotente(client, mock_supabase):
+    """Mismo estatus → no actualiza ni notifica"""
     mock_supabase.queue(
-        [],
-        [{"id": "inc-3", "empleado_nombre": "Luis", "tipo": "retardo",
-          "fecha": "2025-06-05", "registro_id": None, "motivo": "Llegue tarde"}],
+        [{"id": "inc-3", "empleado_nombre": "Luis", "estatus": "aprobada"}],
     )
     resp = client.put("/api/incidencias/inc-3/resolver", json={"estatus": "aprobada"})
     assert resp.status_code == 200
+    assert resp.json().get("idempotent") is True
+
+
+def test_resolve_incidencia_not_found(client, mock_supabase):
+    mock_supabase.queue([])
+    resp = client.put("/api/incidencias/inc-404/resolver", json={"estatus": "aprobada"})
+    assert resp.status_code == 404
