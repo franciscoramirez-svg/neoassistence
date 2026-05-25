@@ -27,7 +27,7 @@ export default function QRsPage() {
 
   useEffect(() => {
     if (!user) return;
-    apiRequest<Branch[]>("/branches").then(d => { setBranches(d || []); setLoading(false); }).catch(() => setLoading(false));
+    apiRequest<{data: Branch[]}>("/branches").then(d => { setBranches(d.data || []); setLoading(false); }).catch(() => setLoading(false));
   }, [user]);
 
   if (!mounted || !user) {

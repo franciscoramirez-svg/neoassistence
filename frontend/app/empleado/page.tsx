@@ -31,8 +31,8 @@ export default function EmpleadoPage() {
       if (found) {
         setEmployee(found);
         if (found.sucursal_id) {
-          apiRequest<any[]>(`/branches`).then((branches) => {
-            const b = branches.find((br: any) => br.id === found.sucursal_id);
+          apiRequest<{data: any[]}>(`/branches`).then((r) => {
+            const b = (r.data || []).find((br: any) => br.id === found.sucursal_id);
             if (b) setBranchName(b.nombre);
           }).catch(() => {});
         }

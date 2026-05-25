@@ -47,8 +47,8 @@ export default function CheckInPage() {
     if (branch) {
       setQrBranchId(branch);
       setQrMode(true);
-      apiRequest<any[]>("/branches").then(branches => {
-        const b = branches?.find((x: any) => x.id === branch);
+      apiRequest<{data: any[]}>("/branches").then(r => {
+        const b = (r.data || []).find((x: any) => x.id === branch);
         if (b) setQrBranchName(b.nombre);
       }).catch(() => {});
     }
@@ -121,8 +121,8 @@ export default function CheckInPage() {
           const branch = url.searchParams.get("branch");
           if (branch) {
             setQrBranchId(branch);
-            apiRequest<any[]>("/branches").then(branches => {
-              const b = branches?.find((x: any) => x.id === branch);
+            apiRequest<{data: any[]}>("/branches").then(r => {
+              const b = (r.data || []).find((x: any) => x.id === branch);
               if (b) setQrBranchName(b.nombre);
             }).catch(() => {});
             setQrScanning(false);
