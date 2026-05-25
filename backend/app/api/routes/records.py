@@ -53,6 +53,22 @@ def calendar_data(mes: str, empleado: Optional[str] = None):
     return result
 
 
+@router.put("/admin/records/{record_id}")
+def update_record(record_id: str, payload: dict):
+    supabase = get_supabase()
+    allowed = {}
+    if "estatus" in payload:
+        allowed["estatus"] = payload["estatus"]
+    if "justificacion" in payload:
+        allowed["justificacion"] = payload["justificacion"]
+    if not allowed:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    result = supabase.table("registros").update(allowed).eq("id", record_id).execute()
+    if result.data:
+        return {"ok": True, "data": result.data[0]}
+    raise HTTPException(status_code=404, detail="Record not found")
+
+
 @router.get("/records/export/excel")
 def export_excel(fecha_inicio: Optional[str] = None, fecha_fin: Optional[str] = None, sucursal_id: Optional[str] = None):
     supabase = get_supabase()

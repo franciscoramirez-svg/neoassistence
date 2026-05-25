@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 from app.services.supabase_client import get_supabase
+from app.core.config import settings
 
 router = APIRouter(tags=["permisos"])
 
@@ -71,6 +72,21 @@ def resolve_permiso(perm_id: str, payload: PermisoResolve):
             perm.data[0]["empleado_nombre"] if perm.data else "Empleado",
             f"Permiso {payload.estatus}",
             f"Tu permiso fue {payload.estatus}. {payload.admin_comentario}" if payload.admin_comentario else f"Tu permiso fue {payload.estatus}"
+        )
+    except:
+        pass
+
+    try:
+        from app.services.auto_reports import send_notification_email
+        nombre = perm.data[0]["empleado_nombre"] if perm.data else "Empleado"
+        tipo = perm.data[0].get("tipo", "N/A") if perm.data else "N/A"
+        fechas = f"{perm.data[0].get('fecha_inicio', '')} a {perm.data[0].get('fecha_fin', '')}" if perm.data else ""
+        send_notification_email(
+            settings.smtp_user,
+            f"Permiso {payload.estatus} - {nombre}",
+            f"Hola {nombre},\n\nTu permiso ha sido {payload.estatus}.\n"
+            f"Tipo: {tipo}\nFechas: {fechas}\n"
+            f"{'Comentario: ' + payload.admin_comentario if payload.admin_comentario else ''}\n\n-- NeoAssistence"
         )
     except:
         pass

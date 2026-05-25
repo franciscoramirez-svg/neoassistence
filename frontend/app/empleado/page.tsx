@@ -99,6 +99,9 @@ export default function EmpleadoPage() {
         </p>
       </div>
 
+      <button onClick={()=>router.push("/historial")} style={{width:"100%",padding:"16px",borderRadius:16,border:"1px solid rgba(94,242,255,0.3)",background:"rgba(94,242,255,0.08)",color:"white",fontSize:15,fontWeight:"bold",cursor:"pointer",marginBottom:8}}>
+        📋 Mi historial
+      </button>
       <button onClick={()=>router.push("/yts")} style={{width:"100%",padding:"16px",borderRadius:16,border:"1px solid rgba(255,204,94,0.3)",background:"rgba(255,204,94,0.08)",color:"white",fontSize:15,fontWeight:"bold",cursor:"pointer"}}>
         Yo Trabajo Seguro
       </button>

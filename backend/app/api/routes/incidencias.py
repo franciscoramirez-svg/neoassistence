@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import date, datetime
 from app.services.supabase_client import get_supabase
+from app.core.config import settings
 
 router = APIRouter(tags=["incidencias"])
 
@@ -83,6 +84,19 @@ def resolve_incidencia(inc_id: str, payload: IncidenciaResolve):
             inc.data[0]["empleado_nombre"] if inc.data else "Empleado",
             f"Incidencia {payload.estatus}",
             f"Tu incidencia fue {payload.estatus}. {payload.admin_comentario}" if payload.admin_comentario else f"Tu incidencia fue {payload.estatus}"
+        )
+    except:
+        pass
+
+    try:
+        from app.services.auto_reports import send_notification_email
+        nombre = inc.data[0]["empleado_nombre"] if inc.data else "Empleado"
+        send_notification_email(
+            settings.smtp_user,
+            f"Incidencia {payload.estatus} - {nombre}",
+            f"Hola {nombre},\n\nTu incidencia ha sido {payload.estatus}.\n"
+            f"Tipo: {inc.data[0].get('tipo', 'N/A')}\nFecha: {inc.data[0].get('fecha', 'N/A')}\n"
+            f"{'Comentario: ' + payload.admin_comentario if payload.admin_comentario else ''}\n\n-- NeoAssistence"
         )
     except:
         pass
