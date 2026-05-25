@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from typing import Optional
 from datetime import datetime, date, timedelta
-import io, openpyxl, calendar
+import io, calendar
 from collections import defaultdict
 from app.services.supabase_client import get_supabase
 
@@ -244,10 +244,11 @@ def historial_puntualidad(empleado: str, meses: Optional[int] = 12):
 
 @router.get("/analytics/ranking/export/excel")
 def export_ranking_excel(periodo_inicio: Optional[str] = None, periodo_fin: Optional[str] = None):
+    from openpyxl import Workbook
     data = ranking_puntualidad(periodo_inicio, periodo_fin)
     ranking = data["data"]
 
-    wb = openpyxl.Workbook()
+    wb = Workbook()
     ws = wb.active
     ws.title = "Ranking Puntualidad"
     ws.append(["#", "Empleado", "Total Registros", "A Tiempo", "Retardos", "Min Retardo", "% Puntualidad"])

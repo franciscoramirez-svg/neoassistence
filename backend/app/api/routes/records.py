@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from typing import Optional
-import io, openpyxl
+import io
 from datetime import datetime
 
 from app.schemas.records import ApiMessage, RecordCreateRequest
@@ -71,11 +71,12 @@ def update_record(record_id: str, payload: dict):
 
 @router.get("/records/export/excel")
 def export_excel(fecha_inicio: Optional[str] = None, fecha_fin: Optional[str] = None, sucursal_id: Optional[str] = None):
+    from openpyxl import Workbook
     supabase = get_supabase()
     q = supabase.table("registros").select("*").order("fecha_hora", desc=True).limit(5000).execute()
     rows = q.data or []
 
-    wb = openpyxl.Workbook()
+    wb = Workbook()
     ws = wb.active
     ws.title = "Asistencia"
     ws.append(["Fecha/Hora", "Empleado", "Tipo", "Estatus", "Min Retardo", "Sucursal", "Justificación"])
