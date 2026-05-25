@@ -1,10 +1,13 @@
 from fastapi import APIRouter
-from datetime import datetime, date
-from zoneinfo import ZoneInfo
+from datetime import datetime, timezone, timedelta
 from app.services.supabase_client import get_supabase
 from app.core.rules import calculate_status
 
-MEXICO_TZ = ZoneInfo("America/Mexico_City")
+try:
+    from zoneinfo import ZoneInfo
+    MEXICO_TZ = ZoneInfo("America/Mexico_City")
+except (ImportError, KeyError, Exception):
+    MEXICO_TZ = timezone(timedelta(hours=-6))
 
 router = APIRouter(tags=["penalizacion"])
 

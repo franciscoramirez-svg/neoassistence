@@ -1,6 +1,4 @@
-from datetime import datetime
-from zoneinfo import ZoneInfo
-
+from datetime import datetime, timezone, timedelta
 import pandas as pd
 
 from app.core.rules import calculate_status
@@ -8,7 +6,11 @@ from app.services.branches import validate_geofence
 from app.services.employees import get_active_employee_by_name
 from app.services.supabase_client import get_supabase
 
-MEXICO_TZ = ZoneInfo("America/Mexico_City")
+try:
+    from zoneinfo import ZoneInfo
+    MEXICO_TZ = ZoneInfo("America/Mexico_City")
+except (ImportError, KeyError, Exception):
+    MEXICO_TZ = timezone(timedelta(hours=-6))
 
 
 def list_records() -> list[dict]:
