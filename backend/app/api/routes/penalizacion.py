@@ -32,6 +32,17 @@ def auto_close_open_entries():
         if last_dt.date() >= today:
             continue
 
+        # Saltar si el empleado tiene permiso aprobado para el día de la entrada
+        entry_date = last_dt.strftime("%Y-%m-%d")
+        permiso = supabase.table("permisos").select("*")\
+            .eq("empleado_nombre", emp["nombre"])\
+            .eq("estatus", "aprobado")\
+            .lte("fecha_inicio", entry_date)\
+            .gte("fecha_fin", entry_date)\
+            .execute()
+        if permiso.data:
+            continue
+
         hora_salida = emp.get("hora_salida") or "18:00:00"
         try:
             close_dt = last_dt.replace(

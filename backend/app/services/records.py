@@ -61,7 +61,22 @@ def create_record(payload: dict) -> tuple[bool, str, dict | None]:
 
     source = payload.get("source", "")
     now = datetime.now()
-    
+    today = now.strftime("%Y-%m-%d")
+
+    # Verifica si el empleado tiene un permiso aprobado para hoy
+    tiene_permiso = False
+    try:
+        permisos = get_supabase().table("permisos").select("*")\
+            .eq("empleado_nombre", payload["employee_name"])\
+            .eq("estatus", "aprobado")\
+            .lte("fecha_inicio", today)\
+            .gte("fecha_fin", today)\
+            .execute()
+        if permisos.data:
+            tiene_permiso = True
+    except:
+        pass
+
     # Kiosko: auto-cierra entrada de días anteriores
     if source.startswith("kiosko") and payload["movement_type"] == "Entrada":
         supabase = get_supabase()
@@ -90,8 +105,8 @@ def create_record(payload: dict) -> tuple[bool, str, dict | None]:
     if employee_has_recent_duplicate(payload["employee_name"], payload["movement_type"], now):
         return False, "Registro duplicado detectado.", None
 
-    # Kiosko bypasses geofence check
-    if not source.startswith("kiosko"):
+    # Kiosko y permiso aprobado bypass geofence check
+    if not source.startswith("kiosko") and not tiene_permiso:
         geofence_ok, geofence_message, distance = validate_geofence(
             payload["lat"],
             payload["lon"],
@@ -100,16 +115,22 @@ def create_record(payload: dict) -> tuple[bool, str, dict | None]:
         if not geofence_ok:
             return False, geofence_message, None
 
-    status, delay_minutes = calculate_status(
-        payload["movement_type"],
-        now,
-        employee.get("hora_entrada"),
-        employee.get("hora_salida"),
-        employee.get("tolerancia_minutos", 15) or 15,
-    )
+    if tiene_permiso:
+        status = "Permiso"
+        delay_minutes = 0
+        justificacion = "Permiso aprobado"
+    else:
+        status, delay_minutes = calculate_status(
+            payload["movement_type"],
+            now,
+            employee.get("hora_entrada"),
+            employee.get("hora_salida"),
+            employee.get("tolerancia_minutos", 15) or 15,
+        )
+        justificacion = payload.get("justification") or ""
 
-    # En kiosko NO se requiere justificación
-    if status != "A Tiempo" and not source.startswith("kiosko"):
+    # En kiosko o permiso NO se requiere justificación
+    if status not in ("A Tiempo", "Permiso") and not source.startswith("kiosko"):
         if not payload.get("justification"):
             return False, f"Estatus: {status}. Justificación requerida.", None
 
@@ -123,7 +144,7 @@ def create_record(payload: dict) -> tuple[bool, str, dict | None]:
         "estatus": status,
         "min_retardo": delay_minutes,
         "sucursal_id": sucursal_id,
-        "justificacion": payload.get("justification") or "",
+        "justificacion": justificacion,
     }
     response = get_supabase().table("registros").insert(record_payload).execute()
     created = response.data[0] if response.data else None
