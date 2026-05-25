@@ -118,6 +118,17 @@ export default function ReportesPage() {
     window.open(`${API_URL}/records/export/excel?${params.toString()}`, "_blank");
   };
 
+  const exportarSemanal = () => {
+    if (!filtroFechaInicio || !filtroFechaFin) {
+      toast("Selecciona fecha inicio y fin", "error");
+      return;
+    }
+    const params = new URLSearchParams();
+    params.set("fecha_inicio", filtroFechaInicio);
+    params.set("fecha_fin", filtroFechaFin);
+    window.open(`${API_URL}/records/export/semanal?${params.toString()}`, "_blank");
+  };
+
   const exportarCSV = () => {
     const headers = ["Fecha/Hora", "Empleado", "Tipo", "Estatus", "Justificación"];
     const rows = registrosFiltrados.map(r => [
@@ -238,6 +249,9 @@ export default function ReportesPage() {
             </button>
             <button onClick={exportarExcel} style={{ padding: "10px 16px", borderRadius: 10, border: "1px solid rgba(156,255,181,0.28)", background: "linear-gradient(135deg, rgba(156,255,181,0.14), rgba(94,242,255,0.08))", color: "white", cursor: "pointer" }}>
               📊 Excel
+            </button>
+            <button onClick={exportarSemanal} style={{ padding: "10px 16px", borderRadius: 10, border: "1px solid rgba(255,140,158,0.28)", background: "linear-gradient(135deg, rgba(255,140,158,0.14), rgba(208,138,255,0.08))", color: "white", cursor: "pointer" }}>
+              📋 Semanal
             </button>
           </div>
         </div>
