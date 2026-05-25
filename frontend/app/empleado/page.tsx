@@ -102,6 +102,9 @@ export default function EmpleadoPage() {
       <button onClick={()=>router.push("/yts")} style={{width:"100%",padding:"16px",borderRadius:16,border:"1px solid rgba(255,204,94,0.3)",background:"rgba(255,204,94,0.08)",color:"white",fontSize:15,fontWeight:"bold",cursor:"pointer"}}>
         Yo Trabajo Seguro
       </button>
+      <button onClick={()=>router.push("/permisos")} style={{width:"100%",padding:"16px",borderRadius:16,border:"1px solid rgba(156,255,181,0.3)",background:"rgba(156,255,181,0.08)",color:"white",fontSize:15,fontWeight:"bold",cursor:"pointer",marginTop:8}}>
+        Permisos y Vacaciones
+      </button>
     </main>
   );
 }
