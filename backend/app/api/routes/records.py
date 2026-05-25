@@ -25,6 +25,34 @@ def post_record(payload: RecordCreateRequest) -> ApiMessage:
     return ApiMessage(ok=True, message=message, data=data)
 
 
+@router.get("/records/calendar")
+def calendar_data(mes: str, empleado: Optional[str] = None):
+    supabase = get_supabase()
+    q = supabase.table("registros").select("*").gte("fecha_hora", f"{mes}-01").lte("fecha_hora", f"{mes}-31").execute()
+    rows = q.data or []
+    days: dict[str, list[str]] = {}
+    for r in rows:
+        d = r.get("fecha_hora", "")[:10]
+        if not d:
+            continue
+        if empleado and r.get("empleado") != empleado:
+            continue
+        if d not in days:
+            days[d] = []
+        days[d].append(r.get("estatus", ""))
+    result = {}
+    for d, statuses in days.items():
+        if any("Retardo" in s for s in statuses):
+            result[d] = "retardo"
+        elif any(s == "Permiso" for s in statuses):
+            result[d] = "permiso"
+        elif any(s in ("A Tiempo", "OLVIDO REGISTRO", "Justificado") for s in statuses):
+            result[d] = "presente"
+        else:
+            result[d] = "otro"
+    return result
+
+
 @router.get("/records/export/excel")
 def export_excel(fecha_inicio: Optional[str] = None, fecha_fin: Optional[str] = None, sucursal_id: Optional[str] = None):
     supabase = get_supabase()
