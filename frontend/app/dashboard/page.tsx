@@ -231,6 +231,7 @@ export default function DashboardPage() {
           <Link href="/calendario" style={{padding:"14px 18px",borderRadius:12,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none"}}>📅 Calendario</Link>
           <Link href="/historial" style={{padding:"14px 18px",borderRadius:12,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none"}}>📋 Mi historial</Link>
           <Link href="/admin/registros" style={{padding:"14px 18px",borderRadius:12,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none"}}>✏️ Editar registros</Link>
+          <Link href="/admin/nomina" style={{padding:"14px 18px",borderRadius:12,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none"}}>💰 Nómina</Link>
         </div>
       </section>
     </main>

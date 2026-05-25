@@ -7,7 +7,7 @@ import os, asyncio
 from app.api.routes import auth, health, records, branches, employees
 from app.api.routes import reports, notifications
 from app.api.routes import debug, yts, penalizacion, push
-from app.api.routes import incidencias, permisos
+from app.api.routes import incidencias, permisos, nomina
 from app.core.config import settings
 
 
@@ -70,6 +70,7 @@ app.include_router(penalizacion.router, prefix="/api")
 app.include_router(push.router, prefix="/api")
 app.include_router(incidencias.router, prefix="/api")
 app.include_router(permisos.router, prefix="/api")
+app.include_router(nomina.router, prefix="/api")
 
 
 @app.get("/")

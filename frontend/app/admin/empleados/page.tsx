@@ -18,6 +18,7 @@ type Employee = {
   hora_entrada: string;
   hora_salida: string;
   tolerancia_minutos?: number;
+  sueldo_diario?: number;
   numero_empleado?: string;
   foto_url?: string;
 };
@@ -47,6 +48,7 @@ export default function EmpleadosAdminPage() {
     hora_entrada: "07:00", 
     hora_salida: "17:00",
     tolerancia_minutos: "15",
+    sueldo_diario: "200.00",
     horas_extra: false,
     numero_empleado: ""
   });
@@ -196,7 +198,7 @@ export default function EmpleadosAdminPage() {
 
   async function saveEmployee() {
     try {
-      const payload = { ...formData, tolerancia_minutos: Number(formData.tolerancia_minutos) || 15 };
+      const payload = { ...formData, tolerancia_minutos: Number(formData.tolerancia_minutos) || 15, sueldo_diario: Number(formData.sueldo_diario) || 0 };
       if (selectedEmp?.id) {
         await apiRequest(`/employees/${selectedEmp.id}`, {
           method: "PUT",
@@ -229,7 +231,7 @@ export default function EmpleadosAdminPage() {
 
   function newEmployee() {
     setSelectedEmp(null);
-    setFormData({ nombre: "", pin: "1234", rol: "employee", activo: true, sucursal_id: "", hora_entrada: "08:00", hora_salida: "18:00", tolerancia_minutos: "15", horas_extra: false, numero_empleado: "" });
+    setFormData({ nombre: "", pin: "1234", rol: "employee", activo: true, sucursal_id: "", hora_entrada: "08:00", hora_salida: "18:00", tolerancia_minutos: "15", sueldo_diario: "200.00", horas_extra: false, numero_empleado: "" });
     setEditMode(true);
   }
 
@@ -244,6 +246,7 @@ export default function EmpleadosAdminPage() {
       hora_entrada: emp.hora_entrada || "08:00",
       hora_salida: emp.hora_salida || "18:00",
       tolerancia_minutos: String(emp.tolerancia_minutos ?? "15"),
+      sueldo_diario: String(emp.sueldo_diario ?? "200.00"),
       horas_extra: false,
       numero_empleado: emp.numero_empleado || "",
     });
@@ -367,6 +370,10 @@ export default function EmpleadosAdminPage() {
                 <div style={{flex:1}}>
                   <span style={{color:"#9bb4ca",fontSize:11}}>Tol. (min)</span>
                   <input type="number" value={formData.tolerancia_minutos} onChange={e => setFormData({...formData, tolerancia_minutos: e.target.value})} style={{width:"100%",padding:8,borderRadius:8,border:"1px solid rgba(94,242,255,0.2)",background:"rgba(10,21,38,0.8)",color:"white",fontSize:13}} min="0" max="120" />
+                </div>
+                <div style={{flex:1}}>
+                  <span style={{color:"#9bb4ca",fontSize:11}}>$ Diario</span>
+                  <input type="number" value={formData.sueldo_diario} onChange={e => setFormData({...formData, sueldo_diario: e.target.value})} style={{width:"100%",padding:8,borderRadius:8,border:"1px solid rgba(94,242,255,0.2)",background:"rgba(10,21,38,0.8)",color:"white",fontSize:13}} min="0" step="10" />
                 </div>
               </div>
             </div>
