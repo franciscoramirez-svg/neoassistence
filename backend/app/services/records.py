@@ -13,9 +13,21 @@ except (ImportError, KeyError, Exception):
     MEXICO_TZ = timezone(timedelta(hours=-6))
 
 
+def _ensure_tz(fh: str) -> str:
+    if not fh:
+        return fh
+    if fh[-1] == "Z":
+        return fh
+    if len(fh) >= 6 and fh[-6] in ("+", "-") and fh[-3] == ":":
+        return fh
+    return fh + "Z"
+
 def list_records() -> list[dict]:
     result = get_supabase().table("registros").select("*").order("fecha_hora", desc=True).limit(100).execute()
-    return result.data or []
+    rows = result.data or []
+    for r in rows:
+        r["fecha_hora"] = _ensure_tz(r.get("fecha_hora", ""))
+    return rows
 
 
 def employee_has_recent_duplicate(name: str, movement_type: str, current_dt: datetime, window_minutes: int = 2) -> bool:
