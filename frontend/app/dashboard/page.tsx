@@ -196,6 +196,7 @@ export default function DashboardPage() {
           <Link href="/admin/empleados" style={{padding:"14px 18px",borderRadius:12,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none"}}>Empleados</Link>
           <Link href="/yts" style={{padding:"14px 18px",borderRadius:12,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none"}}>YTS</Link>
           <Link href="/empleado" style={{padding:"14px 18px",borderRadius:12,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none"}}>Mi Credencial</Link>
+          <Link href="/incidencias" style={{padding:"14px 18px",borderRadius:12,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none"}}>⚠️ Incidencias</Link>
         </div>
       </section>
     </main>
