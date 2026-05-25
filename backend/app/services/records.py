@@ -47,7 +47,10 @@ def employee_has_recent_duplicate(name: str, movement_type: str, current_dt: dat
         return False
 
     latest = frame.sort_values("fecha_hora").iloc[-1]["fecha_hora"].to_pydatetime()
-    delta = abs((current_dt.replace(tzinfo=None) - latest.replace(tzinfo=None)).total_seconds() / 60)
+    # Compare both in UTC to avoid timezone mismatch
+    current_utc = current_dt.astimezone(timezone.utc).replace(tzinfo=None)
+    latest_utc = latest.replace(tzinfo=None)
+    delta = abs((current_utc - latest_utc).total_seconds() / 60)
     return delta <= window_minutes
 
 
@@ -77,8 +80,8 @@ def create_record(payload: dict) -> tuple[bool, str, dict | None]:
         return False, "Empleado no encontrado o inactivo.", None
 
     source = payload.get("source", "")
-    now = datetime.now(MEXICO_TZ)
-    today = now.strftime("%Y-%m-%d")
+    now_mx = datetime.now(MEXICO_TZ)
+    today = now_mx.strftime("%Y-%m-%d")
 
     # Verifica si el empleado tiene un permiso aprobado para hoy
     tiene_permiso = False
@@ -106,7 +109,7 @@ def create_record(payload: dict) -> tuple[bool, str, dict | None]:
                 last_dt = datetime.fromisoformat(last["fecha_hora"].replace("Z", ""))
             if last_dt.tzinfo:
                 last_dt = last_dt.replace(tzinfo=None)
-            if last["tipo"] == "Entrada" and last_dt.date() < now.date():
+            if last["tipo"] == "Entrada" and last_dt.date() < now_mx.date():
                 close_dt = last_dt.replace(hour=23, minute=59, second=59)
                 supabase.table("registros").insert({
                     "empleado": payload["employee_name"],
@@ -124,7 +127,7 @@ def create_record(payload: dict) -> tuple[bool, str, dict | None]:
     if not flow_ok:
         return False, flow_message, None
 
-    if employee_has_recent_duplicate(payload["employee_name"], payload["movement_type"], now):
+    if employee_has_recent_duplicate(payload["employee_name"], payload["movement_type"], now_mx):
         return False, "Registro duplicado detectado.", None
 
     # Kiosko y permiso aprobado bypass geofence check
@@ -144,7 +147,7 @@ def create_record(payload: dict) -> tuple[bool, str, dict | None]:
     else:
         status, delay_minutes = calculate_status(
             payload["movement_type"],
-            now.replace(tzinfo=None),
+            now_mx.replace(tzinfo=None),
             employee.get("hora_entrada"),
             employee.get("hora_salida"),
             employee.get("tolerancia_minutos", 15) or 15,
@@ -156,11 +159,12 @@ def create_record(payload: dict) -> tuple[bool, str, dict | None]:
         if not payload.get("justification"):
             return False, f"Estatus: {status}. Justificación requerida.", None
 
+    now_utc = now_mx.astimezone(timezone.utc).replace(tzinfo=None)
     sucursal_id = payload.get("branch_id") or employee.get("sucursal_id")
     record_payload = {
         "empleado": employee["nombre"],
         "tipo": payload["movement_type"],
-        "fecha_hora": now.isoformat(),
+        "fecha_hora": now_utc.isoformat(),
         "lat": payload["lat"],
         "lon": payload["lon"],
         "estatus": status,
@@ -178,7 +182,7 @@ def create_record(payload: dict) -> tuple[bool, str, dict | None]:
         send_push_notification(
             employee["nombre"],
             f"Registro {mov}",
-            f"{mov} registrada a las {now.strftime('%H:%M')} - {status}"
+            f"{mov} registrada a las {now_mx.strftime('%H:%M')} - {status}"
         )
     except:
         pass
