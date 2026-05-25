@@ -105,6 +105,7 @@ def create_record(payload: dict) -> tuple[bool, str, dict | None]:
         now,
         employee.get("hora_entrada"),
         employee.get("hora_salida"),
+        employee.get("tolerancia_minutos", 15) or 15,
     )
 
     # En kiosko NO se requiere justificación

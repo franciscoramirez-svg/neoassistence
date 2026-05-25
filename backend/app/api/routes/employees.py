@@ -18,6 +18,7 @@ class EmployeeCreate(BaseModel):
     sucursal_id: Optional[str] = None
     hora_entrada: Optional[str] = None
     hora_salida: Optional[str] = None
+    tolerancia_minutos: Optional[int] = None
     numero_empleado: Optional[str] = None
 
 @router.get("/employees")

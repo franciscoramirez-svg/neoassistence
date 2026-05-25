@@ -45,6 +45,7 @@ export default function EmpleadosAdminPage() {
     sucursal_id: "", 
     hora_entrada: "07:00", 
     hora_salida: "17:00",
+    tolerancia_minutos: "15",
     horas_extra: false,
     numero_empleado: ""
   });
@@ -194,7 +195,7 @@ export default function EmpleadosAdminPage() {
 
   async function saveEmployee() {
     try {
-      const payload = { ...formData };
+      const payload = { ...formData, tolerancia_minutos: Number(formData.tolerancia_minutos) || 15 };
       if (selectedEmp?.id) {
         await apiRequest(`/employees/${selectedEmp.id}`, {
           method: "PUT",
@@ -227,7 +228,7 @@ export default function EmpleadosAdminPage() {
 
   function newEmployee() {
     setSelectedEmp(null);
-    setFormData({ nombre: "", pin: "1234", rol: "employee", activo: true, sucursal_id: "", hora_entrada: "08:00", hora_salida: "18:00", horas_extra: false, numero_empleado: "" });
+    setFormData({ nombre: "", pin: "1234", rol: "employee", activo: true, sucursal_id: "", hora_entrada: "08:00", hora_salida: "18:00", tolerancia_minutos: "15", horas_extra: false, numero_empleado: "" });
     setEditMode(true);
   }
 
@@ -241,6 +242,7 @@ export default function EmpleadosAdminPage() {
       sucursal_id: emp.sucursal_id || "",
       hora_entrada: emp.hora_entrada || "08:00",
       hora_salida: emp.hora_salida || "18:00",
+      tolerancia_minutos: String(emp.tolerancia_minutos ?? "15"),
       horas_extra: false,
       numero_empleado: emp.numero_empleado || "",
     });
@@ -278,7 +280,8 @@ export default function EmpleadosAdminPage() {
                 <th style={{textAlign:"left",padding:"12px 8px",color:"#9bb4ca"}}>Nombre</th>
                 <th style={{textAlign:"left",padding:"12px 8px",color:"#9bb4ca"}}>No.</th>
                 <th style={{textAlign:"left",padding:"12px 8px",color:"#9bb4ca"}}>Rol</th>
-                <th style={{textAlign:"center",padding:"12px 8px",color:"#9bb4ca"}}>PIN</th>
+                <th style={{textAlign:"center",padding:"12px 8px",color:"#9bb4ca"}}>Horario</th>
+                <th style={{textAlign:"center",padding:"12px 8px",color:"#9bb4ca"}}>Tol.</th>
                 <th style={{textAlign:"center",padding:"12px 8px",color:"#9bb4ca"}}>Estado</th>
                 <th style={{textAlign:"center",padding:"12px 8px",color:"#9bb4ca"}}>Acciones</th>
               </tr>
@@ -289,9 +292,10 @@ export default function EmpleadosAdminPage() {
                   <td style={{padding:"12px 8px",color:"white"}}>{emp.nombre}</td>
                   <td style={{padding:"12px 8px",color:"#9bb4ca",fontFamily:"monospace",fontSize:13}}>{emp.numero_empleado || "—"}</td>
                   <td style={{padding:"12px 8px",color:"#9bb4ca"}}>{emp.rol || "employee"}</td>
-                  <td style={{padding:"12px 8px",textAlign:"center",color:"#5ef2ff"}}>••••</td>
+                  <td style={{padding:"12px 8px",textAlign:"center",color:"#5ef2ff",fontSize:12}}>{(emp.hora_entrada||"??").slice(0,5)}-{(emp.hora_salida||"??").slice(0,5)}</td>
+                  <td style={{padding:"12px 8px",textAlign:"center",color:"#9bb4ca",fontSize:12}}>{emp.tolerancia_minutos ?? 15}min</td>
                   <td style={{padding:"12px 8px",textAlign:"center"}}>
-                    <span style={{color: emp.activo ? "#9cffb5" : "#ff8c9e"}}>{emp.activo ? "✓ Activo" : "✕ Inactivo"}</span>
+                    <span style={{color: emp.activo ? "#9cffb5" : "#ff8c9e"}}>{emp.activo ? "Activo" : "Inactivo"}</span>
                   </td>
                   <td style={{padding:"12px 8px",textAlign:"center",display:"flex",gap:8,justifyContent:"center"}}>
                     <button onClick={() => setShowQR(emp.id + "|" + emp.nombre)} style={{padding:"6px 12px",borderRadius:6,border:"1px solid rgba(94,242,255,0.2)",background:"transparent",color:"#5ef2ff",fontSize:12}}>QR</button>
@@ -358,6 +362,10 @@ export default function EmpleadosAdminPage() {
                 <div style={{flex:1}}>
                   <span style={{color:"#9bb4ca",fontSize:11}}>Salida</span>
                   <input type="time" value={formData.hora_salida} onChange={e => setFormData({...formData, hora_salida: e.target.value})} style={{width:"100%",padding:8,borderRadius:8,border:"1px solid rgba(94,242,255,0.2)",background:"rgba(10,21,38,0.8)",color:"white",fontSize:13}} />
+                </div>
+                <div style={{flex:1}}>
+                  <span style={{color:"#9bb4ca",fontSize:11}}>Tol. (min)</span>
+                  <input type="number" value={formData.tolerancia_minutos} onChange={e => setFormData({...formData, tolerancia_minutos: e.target.value})} style={{width:"100%",padding:8,borderRadius:8,border:"1px solid rgba(94,242,255,0.2)",background:"rgba(10,21,38,0.8)",color:"white",fontSize:13}} min="0" max="120" />
                 </div>
               </div>
             </div>

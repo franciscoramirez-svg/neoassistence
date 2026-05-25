@@ -6,11 +6,11 @@ def calculate_status(
     current_dt: datetime,
     shift_start: str,
     shift_end: str,
+    tolerancia_minutos: int = 15,
 ) -> tuple[str, int]:
     delay_minutes = 0
     status = "A Tiempo"
     
-    # Handle empty or invalid times
     if not shift_start:
         shift_start = "08:00:00"
     if not shift_end:
@@ -22,9 +22,9 @@ def calculate_status(
     if movement_type == "Entrada":
         diff = (current_dt - start_dt).total_seconds() / 60
         delay_minutes = max(0, int(diff))
-        if delay_minutes > 30:
+        if delay_minutes > tolerancia_minutos * 2:
             status = "RETARDO CRITICO"
-        elif delay_minutes > 15:
+        elif delay_minutes > tolerancia_minutos:
             status = "Retardo"
     elif movement_type == "Salida":
         diff = (end_dt - current_dt).total_seconds() / 60
