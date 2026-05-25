@@ -1,5 +1,5 @@
-const CACHE = "neoassistence-v1";
-const STATIC_CACHE = "neoassistence-static-v1";
+const CACHE = "neoassistence-v2";
+const STATIC_CACHE = "neoassistence-static-v2";
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
@@ -32,16 +32,15 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Next.js static assets - cache first
+  // Next.js static assets - network first (avoid stale chunks after deploy)
   if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icons/")) {
     event.respondWith(
-      caches.match(event.request).then((cached) => {
-        const fetched = fetch(event.request).then((res) => {
+      fetch(event.request)
+        .then((res) => {
           caches.open(STATIC_CACHE).then((cache) => cache.put(event.request, res.clone()));
           return res;
-        });
-        return cached || fetched;
-      })
+        })
+        .catch(() => caches.match(event.request))
     );
     return;
   }
