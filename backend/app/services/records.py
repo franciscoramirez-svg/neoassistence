@@ -1,4 +1,5 @@
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 
@@ -6,6 +7,8 @@ from app.core.rules import calculate_status
 from app.services.branches import validate_geofence
 from app.services.employees import get_active_employee_by_name
 from app.services.supabase_client import get_supabase
+
+MEXICO_TZ = ZoneInfo("America/Mexico_City")
 
 
 def list_records() -> list[dict]:
@@ -60,7 +63,7 @@ def create_record(payload: dict) -> tuple[bool, str, dict | None]:
         return False, "Empleado no encontrado o inactivo.", None
 
     source = payload.get("source", "")
-    now = datetime.now()
+    now = datetime.now(MEXICO_TZ)
     today = now.strftime("%Y-%m-%d")
 
     # Verifica si el empleado tiene un permiso aprobado para hoy
@@ -83,7 +86,12 @@ def create_record(payload: dict) -> tuple[bool, str, dict | None]:
         prev = supabase.table("registros").select("*").eq("empleado", payload["employee_name"]).order("fecha_hora", desc=True).limit(1).execute()
         if prev.data:
             last = prev.data[0]
-            last_dt = datetime.fromisoformat(last["fecha_hora"].replace("Z", ""))
+            try:
+                last_dt = datetime.fromisoformat(last["fecha_hora"])
+            except:
+                last_dt = datetime.fromisoformat(last["fecha_hora"].replace("Z", ""))
+            if last_dt.tzinfo:
+                last_dt = last_dt.replace(tzinfo=None)
             if last["tipo"] == "Entrada" and last_dt.date() < now.date():
                 close_dt = last_dt.replace(hour=23, minute=59, second=59)
                 supabase.table("registros").insert({
@@ -122,7 +130,7 @@ def create_record(payload: dict) -> tuple[bool, str, dict | None]:
     else:
         status, delay_minutes = calculate_status(
             payload["movement_type"],
-            now,
+            now.replace(tzinfo=None),
             employee.get("hora_entrada"),
             employee.get("hora_salida"),
             employee.get("tolerancia_minutos", 15) or 15,

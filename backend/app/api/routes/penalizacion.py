@@ -1,7 +1,10 @@
 from fastapi import APIRouter
 from datetime import datetime, date
+from zoneinfo import ZoneInfo
 from app.services.supabase_client import get_supabase
 from app.core.rules import calculate_status
+
+MEXICO_TZ = ZoneInfo("America/Mexico_City")
 
 router = APIRouter(tags=["penalizacion"])
 
@@ -14,7 +17,7 @@ def auto_close_open_entries():
     Solo corre UNA VEZ por entrada abierta (dedup por justificacion).
     """
     supabase = get_supabase()
-    today = date.today()
+    today = datetime.now(MEXICO_TZ).date()
     cerrados = 0
     errores = 0
     saltados = 0
@@ -27,7 +30,12 @@ def auto_close_open_entries():
         if not ultimo.data:
             continue
         last = ultimo.data[0]
-        last_dt = datetime.fromisoformat(last["fecha_hora"].replace("Z", ""))
+        try:
+            last_dt = datetime.fromisoformat(last["fecha_hora"])
+        except:
+            last_dt = datetime.fromisoformat(last["fecha_hora"].replace("Z", ""))
+        if last_dt.tzinfo:
+            last_dt = last_dt.replace(tzinfo=None)
         if last["tipo"] != "Entrada":
             continue
         if last_dt.date() >= today:
