@@ -3,11 +3,17 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiRequest } from "@/lib/api";
+
 function getStoredUser() {
   if (typeof window === "undefined") return null;
   const raw = localStorage.getItem("neoassistence_user");
   if (!raw) return null;
   try { return JSON.parse(raw); } catch { return null; }
+}
+
+function euclideanDistance(a: number[], b: number[]): number {
+  if (a.length !== b.length) return Infinity;
+  return Math.sqrt(a.reduce((sum, val, i) => sum + (val - b[i]) ** 2, 0));
 }
 
 export default function CheckInPage() {
@@ -31,11 +37,17 @@ export default function CheckInPage() {
   const [justification, setJustification] = useState("");
   const [showJustification, setShowJustification] = useState(false);
   const [pendingType, setPendingType] = useState<"Entrada" | "Salida" | null>(null);
+  const [modelsLoaded, setModelsLoaded] = useState(false);
+  const [descriptors, setDescriptors] = useState<{id: string; name: string; descriptor: number[]}[]>([]);
+  const [faceVerifying, setFaceVerifying] = useState(false);
+  const [faceVerified, setFaceVerified] = useState(false);
+  const [faceStatus, setFaceStatus] = useState("");
   const videoRef = useRef<HTMLVideoElement>(null);
   const selfieVideoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const scanCanvasRef = useRef<HTMLCanvasElement>(null);
   const animFrameRef = useRef<number>(0);
+  const faceapiRef = useRef<any>(null);
 
   useEffect(() => { setMounted(true); }, []);
   useEffect(() => { if (mounted && !user) router.push("/login"); }, [mounted, user, router]);
@@ -64,6 +76,33 @@ export default function CheckInPage() {
       captureSelfiePhoto();
     }
   }, [countdown, selfieMode]);
+
+  // Load face-api models and descriptors on mount
+  useEffect(() => {
+    if (!mounted || !user) return;
+    loadFaceModels();
+    loadFaceDescriptors();
+  }, [mounted, user]);
+
+  async function loadFaceModels() {
+    try {
+      const faceapi = await import("face-api.js");
+      faceapiRef.current = faceapi;
+      await Promise.all([
+        faceapi.nets.tinyFaceDetector.loadFromUri("/models"),
+        faceapi.nets.faceLandmark68Net.loadFromUri("/models"),
+        faceapi.nets.faceRecognitionNet.loadFromUri("/models"),
+      ]);
+      setModelsLoaded(true);
+    } catch {}
+  }
+
+  async function loadFaceDescriptors() {
+    try {
+      const faces = await apiRequest<{id: string; nombre: string; face_descriptor: number[]}[]>("/employees/faces");
+      setDescriptors(faces.map(f => ({ id: f.id, name: f.nombre, descriptor: f.face_descriptor })));
+    } catch {}
+  }
 
   function requestLocation() {
     if (!navigator.geolocation) { setLocationError("Geolocalización no soportada"); return; }
@@ -102,19 +141,15 @@ export default function CheckInPage() {
     const video = videoRef.current;
     const canvas = scanCanvasRef.current;
     if (!video || !canvas || video.readyState < 2) { animFrameRef.current = requestAnimationFrame(scanQR); return; }
-
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     const ctx = canvas.getContext("2d");
     if (!ctx) { animFrameRef.current = requestAnimationFrame(scanQR); return; }
-
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
     try {
       const jsQR = (await import("jsqr")).default;
       const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
-
       if (code) {
         try {
           const url = new URL(code.data);
@@ -132,17 +167,17 @@ export default function CheckInPage() {
         } catch {}
       }
     } catch {}
-
     animFrameRef.current = requestAnimationFrame(scanQR);
   }
 
-  async function startSelfieCapture() {
+  async function startSelfieCapture(forFaceVerify: boolean = false) {
     setSelfieMode(true); setSelfieCaptured(false); setSelfieImage(null); setError("");
+    if (forFaceVerify) setFaceVerifying(true);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
       if (selfieVideoRef.current) selfieVideoRef.current.srcObject = stream;
       setCountdown(3);
-    } catch { setError("Error al acceder a la cámara"); }
+    } catch { setError("Error al acceder a la cámara"); setFaceVerifying(false); }
   }
 
   async function captureSelfiePhoto() {
@@ -160,9 +195,78 @@ export default function CheckInPage() {
     }
     setSelfieCaptured(true);
     setSelfieMode(false);
+
+    // If face verification is active, run it on the captured photo
+    if (faceVerifying) {
+      await verifyFace();
+    }
   }
 
-  function retakeSelfie() { setSelfieCaptured(false); setSelfieImage(null); startSelfieCapture(); }
+  async function verifyFace() {
+    if (!canvasRef.current || !faceapiRef.current || !user) return;
+    const faceapi = faceapiRef.current;
+    const canvas = canvasRef.current;
+    setFaceStatus("Verificando rostro...");
+    try {
+      const result = await faceapi
+        .detectSingleFace(canvas, new faceapi.TinyFaceDetectorOptions({ inputSize: 320 }))
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+      if (!result) {
+        setFaceStatus("No se detectó rostro. Repite.");
+        setFaceVerifying(false);
+        setFaceVerified(false);
+        return;
+      }
+      const desc = Array.from(result.descriptor as Float32Array);
+      // Find best match
+      let bestMatch: {name: string; distance: number} | null = null;
+      let secondBest: {name: string; distance: number} | null = null;
+      for (const emp of descriptors) {
+        const dist = euclideanDistance(desc, emp.descriptor);
+        if (!bestMatch || dist < bestMatch.distance) {
+          secondBest = bestMatch;
+          bestMatch = { name: emp.name, distance: dist };
+        } else if (!secondBest || dist < secondBest.distance) {
+          secondBest = { name: emp.name, distance: dist };
+        }
+      }
+      if (bestMatch && bestMatch.distance < 0.45 && (!secondBest || bestMatch.distance / secondBest.distance < 0.8)) {
+        // Face matches someone — check it's the logged-in user
+        if (bestMatch.name === user.name) {
+          setFaceStatus("Rostro verificado ✓");
+          setFaceVerified(true);
+          setFaceVerifying(false);
+          return;
+        } else {
+          setFaceStatus(`Rostro no coincide (${bestMatch.name}). Repite.`);
+        }
+      } else {
+        setFaceStatus("Rostro no reconocido. Repite.");
+      }
+    } catch {
+      setFaceStatus("Error al verificar. Repite.");
+    }
+    setFaceVerifying(false);
+    setFaceVerified(false);
+  }
+
+  function retakeSelfie() { setSelfieCaptured(false); setSelfieImage(null); setFaceVerified(false); setFaceVerifying(false); startSelfieCapture(); }
+
+  function startCheckInFlow(type: "Entrada" | "Salida") {
+    setError(""); setMessage("");
+    if (!user?.name) { setError("Sesión no válida"); return; }
+    if (!lat || !lon) { setError("Necesitas ubicación válida"); return; }
+    setPendingType(type);
+
+    // If face not verified yet, start selfie capture with face verification
+    if (!faceVerified && modelsLoaded && descriptors.length > 0) {
+      startSelfieCapture(true);
+      return;
+    }
+    // If models not loaded or no descriptors, allow without face check
+    handleCheckIn(type);
+  }
 
   async function handleCheckIn(type: "Entrada" | "Salida") {
     setError(""); setMessage("");
@@ -187,6 +291,8 @@ export default function CheckInPage() {
       setShowJustification(false);
       setSelfieCaptured(false);
       setSelfieImage(null);
+      setFaceVerified(false);
+      setFaceStatus("");
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : "Error";
       if (errMsg.includes("justificación")) setShowJustification(true);
@@ -208,12 +314,13 @@ export default function CheckInPage() {
         <h1 style={{margin:"8px 0"}}>Registro de asistencia</h1>
         <p style={{color:"#9bb4ca"}}>Bienvenido, <strong>{user.name}</strong></p>
         {qrBranchName && <p style={{color:"#5ef2ff",marginTop:8}}>📍 Sucursal: {qrBranchName}</p>}
+        {faceVerified && <p style={{color:"#9cffb5",marginTop:4,fontSize:12}}>✓ Rostro verificado</p>}
+        {faceStatus && !faceVerified && <p style={{color:"#ffcc5e",marginTop:4,fontSize:12}}>{faceStatus}</p>}
       </div>
 
       <section style={{display:"flex",gap:12,marginBottom:16}}>
         <button onClick={()=>{setQrMode(false);setQrBranchId(null);setQrBranchName("")}} style={{flex:1,padding:12,borderRadius:12,border:qrMode?"1px solid rgba(94,242,255,0.18)":"1px solid rgba(94,242,255,0.28)",background:qrMode?"rgba(10,21,38,0.8)":"linear-gradient(135deg, rgba(94,242,255,0.14), rgba(156,255,181,0.08))",color:"white"}}>📍 GPS</button>
         <button onClick={()=>{setQrMode(true)}} style={{flex:1,padding:12,borderRadius:12,border:!qrMode?"1px solid rgba(94,242,255,0.18)":"1px solid rgba(94,242,255,0.28)",background:!qrMode?"rgba(10,21,38,0.8)":"linear-gradient(135deg, rgba(94,242,255,0.14), rgba(156,255,181,0.08))",color:"white"}}>📷 QR</button>
-        <button onClick={startSelfieCapture} disabled={selfieCaptured} style={{flex:1,padding:12,borderRadius:12,border:"1px solid rgba(94,242,255,0.18)",background:selfieCaptured?"#2a5a3a":"rgba(10,21,38,0.8)",color:"white",cursor:selfieCaptured?"default":"pointer"}}>{selfieCaptured?"✓ selfie":"📸 selfie"}</button>
       </section>
 
       <section className="glass" style={{maxWidth:720,padding:24}}>
@@ -227,13 +334,21 @@ export default function CheckInPage() {
           <div style={{marginBottom:16,textAlign:"center",position:"relative",height:280}}>
             <video ref={selfieVideoRef} autoPlay playsInline muted style={{width:280,height:280,borderRadius:"50%",border:"3px solid #5ef2ff",objectFit:"cover"}} />
             {countdown > 0 && <div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",fontSize:64,fontWeight:"bold",color:"#5ef2ff",textShadow:"0 0 20px #5ef2ff"}}>{countdown}</div>}
+            {faceVerifying && countdown === 0 && <p style={{color:"#5ef2ff",textAlign:"center",marginTop:4,fontSize:11}}>Verificando rostro...</p>}
           </div>
         )}
 
-        {selfieImage && (
+        {selfieCaptured && selfieImage && (
           <div style={{marginBottom:16,textAlign:"center"}}>
-            <img src={selfieImage} alt="selfie" style={{width:200,height:200,borderRadius:"50%",border:"3px solid #5ef2ff",objectFit:"cover",marginBottom:8}} />
-            <button onClick={retakeSelfie} style={{padding:"8px 16px",borderRadius:8,border:"1px solid rgba(94,242,255,0.3)",background:"rgba(10,21,38,0.8)",color:"#5ef2ff",fontSize:12}}>📷 Repetir</button>
+            <img src={selfieImage} alt="selfie" style={{width:200,height:200,borderRadius:"50%",border:`3px solid ${faceVerified?"#9cffb5":"#5ef2ff"}`,objectFit:"cover",marginBottom:8}} />
+            {faceVerified ? (
+              <p style={{color:"#9cffb5",fontSize:13,margin:0}}>✓ Rostro verificado</p>
+            ) : (
+              <div>
+                <p style={{color:faceStatus?"#ffcc5e":"#9bb4ca",fontSize:12,marginBottom:8}}>{faceStatus || "Verificando..."}</p>
+                <button onClick={retakeSelfie} style={{padding:"8px 16px",borderRadius:8,border:"1px solid rgba(94,242,255,0.3)",background:"rgba(10,21,38,0.8)",color:"#5ef2ff",fontSize:12}}>📷 Repetir</button>
+              </div>
+            )}
             <canvas ref={canvasRef} style={{display:"none"}} />
           </div>
         )}
@@ -249,10 +364,12 @@ export default function CheckInPage() {
         {qrMode && qrBranchId && (
           <div style={{marginBottom:16,padding:16,borderRadius:12,background:"rgba(94,242,255,0.08)",border:"1px solid rgba(94,242,255,0.3)",textAlign:"center"}}>
             <p style={{color:"#5ef2ff",fontWeight:"bold",margin:"0 0 4px"}}>✅ QR detectado</p>
-            <p style={{color:"#9bb4ca",margin:0}}>{qrBranchName || "Sucursal"} — puedes registrar entrada/salida</p>
-            <button onClick={()=>{setQrBranchId(null);setQrBranchName("");setQrMode(true)}} style={{marginTop:8,padding:"6px 12px",borderRadius:6,border:"1px solid rgba(94,242,255,0.2)",background:"transparent",color:"#9bb4ca",fontSize:11,cursor:"pointer"}}>Escanear otro QR</button>
+            <p style={{color:"#9bb4ca",margin:0}}>{qrBranchName || "Sucursal"}</p>
+            <button onClick={()=>{setQrBranchId(null);setQrBranchName("");setQrMode(true)}} style={{marginTop:8,padding:"6px 12px",borderRadius:6,border:"1px solid rgba(94,242,255,0.2)",background:"transparent",color:"#9bb4ca",fontSize:11,cursor:"pointer"}}>Escanear otro</button>
           </div>
         )}
+
+        {!modelsLoaded && <p style={{color:"#9bb4ca",fontSize:12,textAlign:"center",marginBottom:8}}>Cargando modelos de reconocimiento facial...</p>}
 
         {showJustification && (
           <div style={{marginBottom:16,padding:16,borderRadius:12,background:"rgba(255,140,158,0.1)",border:"1px solid rgba(255,140,158,0.3)"}}>
@@ -263,11 +380,11 @@ export default function CheckInPage() {
         )}
 
         <div style={{display:"flex",gap:16}}>
-          <button onClick={()=>{setPendingType("Entrada");handleCheckIn("Entrada")}} disabled={!lat||!lon} style={{flex:1,padding:18,borderRadius:18,border:"1px solid rgba(94,242,255,0.28)",background:"linear-gradient(135deg, rgba(94,242,255,0.14), rgba(156,255,181,0.08))",color:"white",cursor:lat&&lon?"pointer":"not-allowed",opacity:lat&&lon?1:0.5}}>📥 Entrada</button>
-          <button onClick={()=>{setPendingType("Salida");handleCheckIn("Salida")}} disabled={!lat||!lon} style={{flex:1,padding:18,borderRadius:18,border:"1px solid rgba(94,242,255,0.18)",background:"rgba(10,21,38,0.8)",color:"white",cursor:lat&&lon?"pointer":"not-allowed",opacity:lat&&lon?1:0.5}}>📤 Salida</button>
+          <button onClick={()=>startCheckInFlow("Entrada")} disabled={!lat||!lon} style={{flex:1,padding:18,borderRadius:18,border:"1px solid rgba(94,242,255,0.28)",background:"linear-gradient(135deg, rgba(94,242,255,0.14), rgba(156,255,181,0.08))",color:"white",cursor:lat&&lon?"pointer":"not-allowed",opacity:lat&&lon?1:0.5}}>📥 Entrada</button>
+          <button onClick={()=>startCheckInFlow("Salida")} disabled={!lat||!lon} style={{flex:1,padding:18,borderRadius:18,border:"1px solid rgba(94,242,255,0.18)",background:"rgba(10,21,38,0.8)",color:"white",cursor:lat&&lon?"pointer":"not-allowed",opacity:lat&&lon?1:0.5}}>📤 Salida</button>
         </div>
         {message ? <p style={{color:"#9cffb5",marginTop:16}}>{message}</p> : null}
-        {error ? <p style={{color:"#ff8c9e",marginTop:16}}>{error}</p> : null}
+        {error && !showJustification ? <p style={{color:"#ff8c9e",marginTop:16}}>{error}</p> : null}
       </section>
     </main>
   );
