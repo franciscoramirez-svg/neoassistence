@@ -113,6 +113,7 @@ def create_record(payload: dict) -> tuple[bool, str, dict | None]:
         if not payload.get("justification"):
             return False, f"Estatus: {status}. Justificación requerida.", None
 
+    sucursal_id = payload.get("branch_id") or employee.get("sucursal_id")
     record_payload = {
         "empleado": employee["nombre"],
         "tipo": payload["movement_type"],
@@ -121,7 +122,7 @@ def create_record(payload: dict) -> tuple[bool, str, dict | None]:
         "lon": payload["lon"],
         "estatus": status,
         "min_retardo": delay_minutes,
-        "sucursal_id": employee.get("sucursal_id"),
+        "sucursal_id": sucursal_id,
         "justificacion": payload.get("justification") or "",
     }
     response = get_supabase().table("registros").insert(record_payload).execute()

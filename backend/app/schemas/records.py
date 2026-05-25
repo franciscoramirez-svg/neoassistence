@@ -8,6 +8,8 @@ class RecordCreateRequest(BaseModel):
     lon: float
     source: str = "web"
     justification: str | None = None
+    branch_id: str | None = None
+    selfie_image: str | None = None
 
 
 class ApiMessage(BaseModel):
