@@ -54,7 +54,7 @@ export default function CheckInPage() {
     }
   }, [mounted, user]);
 
-  useEffect(() => { if (!user || qrMode || lat || qrBranchId) return; requestLocation(); }, [mounted, user, qrMode, lat, qrBranchId]);
+  useEffect(() => { if (!user || lat) return; requestLocation(); }, [mounted, user, lat]);
   useEffect(() => { if (qrMode) startCamera(); else { stopCamera(); setQrScanning(false); } return () => stopCamera(); }, [qrMode]);
   useEffect(() => {
     if (countdown > 0) {
