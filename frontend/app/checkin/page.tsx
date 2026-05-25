@@ -3,8 +3,6 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiRequest } from "@/lib/api";
-import jsQR from "jsqr";
-
 function getStoredUser() {
   if (typeof window === "undefined") return null;
   const raw = localStorage.getItem("neoassistence_user");
@@ -100,7 +98,7 @@ export default function CheckInPage() {
     }
   }
 
-  function scanQR() {
+  async function scanQR() {
     const video = videoRef.current;
     const canvas = scanCanvasRef.current;
     if (!video || !canvas || video.readyState < 2) { animFrameRef.current = requestAnimationFrame(scanQR); return; }
@@ -112,24 +110,28 @@ export default function CheckInPage() {
 
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
 
-    if (code) {
-      try {
-        const url = new URL(code.data);
-        const branch = url.searchParams.get("branch");
-        if (branch) {
-          setQrBranchId(branch);
-          apiRequest<any[]>("/branches").then(branches => {
-            const b = branches?.find((x: any) => x.id === branch);
-            if (b) setQrBranchName(b.nombre);
-          }).catch(() => {});
-          setQrScanning(false);
-          stopCamera();
-          return;
-        }
-      } catch {}
-    }
+    try {
+      const jsQR = (await import("jsqr")).default;
+      const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
+
+      if (code) {
+        try {
+          const url = new URL(code.data);
+          const branch = url.searchParams.get("branch");
+          if (branch) {
+            setQrBranchId(branch);
+            apiRequest<any[]>("/branches").then(branches => {
+              const b = branches?.find((x: any) => x.id === branch);
+              if (b) setQrBranchName(b.nombre);
+            }).catch(() => {});
+            setQrScanning(false);
+            stopCamera();
+            return;
+          }
+        } catch {}
+      }
+    } catch {}
 
     animFrameRef.current = requestAnimationFrame(scanQR);
   }
