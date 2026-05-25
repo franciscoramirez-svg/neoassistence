@@ -17,6 +17,7 @@ type Employee = {
   sucursal_id: string;
   hora_entrada: string;
   hora_salida: string;
+  tolerancia_minutos?: number;
   numero_empleado?: string;
   foto_url?: string;
 };
