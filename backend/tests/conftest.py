@@ -14,8 +14,8 @@ class MockSupabaseClient:
         self._insert_data = None
         self._update_data = None
         self._upsert_data = None
-        self._data = []
-        self._execute_result = MockResult()
+        self._table_name = None
+        self._next_results = []
 
     def table(self, name):
         self._table_name = name
@@ -42,6 +42,9 @@ class MockSupabaseClient:
     def neq(self, *args):
         return self
 
+    def like(self, *args, **kwargs):
+        return self
+
     def insert(self, data):
         self._insert_data = data
         return self
@@ -58,10 +61,13 @@ class MockSupabaseClient:
         return self
 
     def execute(self):
-        return self._execute_result
+        if self._next_results:
+            return MockResult(data=self._next_results.pop(0))
+        return MockResult(data=[])
 
-    def set_data(self, data):
-        self._execute_result = MockResult(data=data)
+    def queue(self, *results):
+        """Queue results in order. Each call to execute() pops the next result."""
+        self._next_results.extend(results)
 
     def get_insert_data(self):
         return self._insert_data

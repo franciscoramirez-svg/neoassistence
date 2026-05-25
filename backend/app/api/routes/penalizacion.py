@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from datetime import datetime, date, timedelta
+from datetime import datetime, date
 from app.services.supabase_client import get_supabase
 from app.core.rules import calculate_status
 
@@ -10,13 +10,14 @@ def auto_close_open_entries():
     """
     Cierra automáticamente entradas abiertas de días anteriores.
     Para cada empleado con una Entrada sin Salida del día anterior,
-    se registra una Salida automática a la hora programada con penalización.
+    se registra una Salida automática al final del día con estatus OLVIDO REGISTRO.
+    Solo corre UNA VEZ por entrada abierta (dedup por justificacion).
     """
     supabase = get_supabase()
     today = date.today()
-    yesterday = today - timedelta(days=1)
     cerrados = 0
     errores = 0
+    saltados = 0
 
     empleados = supabase.table("empleados").select("id,nombre,hora_entrada,hora_salida,sucursal_id").execute()
     empleados = empleados.data or []
@@ -32,8 +33,23 @@ def auto_close_open_entries():
         if last_dt.date() >= today:
             continue
 
-        # Saltar si el empleado tiene permiso aprobado para el día de la entrada
+        # Saltar fin de semana
+        if last_dt.weekday() >= 5:
+            saltados += 1
+            continue
+
         entry_date = last_dt.strftime("%Y-%m-%d")
+        # Saltar si ya se auto-cerró esta entrada
+        ya_cerrado = supabase.table("registros").select("id")\
+            .eq("empleado", emp["nombre"])\
+            .gte("fecha_hora", f"{entry_date}T18:00:00")\
+            .like("justificacion", "%Cierre automático%")\
+            .limit(1).execute()
+        if ya_cerrado.data:
+            saltados += 1
+            continue
+
+        # Saltar si el empleado tiene permiso aprobado
         permiso = supabase.table("permisos").select("*")\
             .eq("empleado_nombre", emp["nombre"])\
             .eq("estatus", "aprobado")\
@@ -43,17 +59,9 @@ def auto_close_open_entries():
         if permiso.data:
             continue
 
+        # Cerrar al final del día (23:59:59) para evitar loop si hora_salida < hora_entrada
+        close_dt = last_dt.replace(hour=23, minute=59, second=59)
         hora_salida = emp.get("hora_salida") or "18:00:00"
-        try:
-            close_dt = last_dt.replace(
-                hour=int(hora_salida.split(":")[0]),
-                minute=int(hora_salida.split(":")[1]),
-                second=int(hora_salida.split(":")[2]) if len(hora_salida.split(":")) > 2 else 0
-            )
-        except:
-            close_dt = last_dt.replace(hour=18, minute=0, second=0)
-
-        status, _ = calculate_status("Salida", close_dt, emp.get("hora_entrada"), hora_salida)
 
         try:
             supabase.table("registros").insert({
@@ -62,7 +70,7 @@ def auto_close_open_entries():
                 "fecha_hora": close_dt.isoformat(),
                 "lat": 0,
                 "lon": 0,
-                "estatus": status if status != "A Tiempo" else "OLVIDO REGISTRO",
+                "estatus": "OLVIDO REGISTRO",
                 "min_retardo": 0,
                 "sucursal_id": emp.get("sucursal_id"),
                 "justificacion": f"Cierre automático - horario programado {hora_salida}",
@@ -71,4 +79,4 @@ def auto_close_open_entries():
         except:
             errores += 1
 
-    return {"ok": True, "cerrados": cerrados, "errores": errores}
+    return {"ok": True, "cerrados": cerrados, "errores": errores, "saltados": saltados}

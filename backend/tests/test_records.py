@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 
 def test_get_records_empty(client, mock_supabase):
-    mock_supabase.set_data([])
+    mock_supabase.queue([])
     resp = client.get("/api/records")
     assert resp.status_code == 200
     data = resp.json()
@@ -20,8 +20,7 @@ def test_post_record(client, mock_supabase):
         patch("app.services.records.validate_flow", return_value=(True, "")),
         patch("app.services.records.employee_has_recent_duplicate", return_value=False),
     ):
-        mock_supabase.set_data([{"id": "rec-1"}])
-
+        mock_supabase.queue([{"id": "rec-1"}])
         payload = {
             "employee_name": "Juan Perez",
             "movement_type": "Entrada",
@@ -35,8 +34,7 @@ def test_post_record(client, mock_supabase):
 
 
 def test_update_record_admin(client, mock_supabase):
-    mock_supabase.set_data([{"id": "rec-1", "estatus": "Justificado", "justificacion": "Trafico"}])
-
+    mock_supabase.queue([{"id": "rec-1", "estatus": "Justificado", "justificacion": "Trafico"}])
     resp = client.put("/api/admin/records/rec-1", json={"estatus": "Justificado", "justificacion": "Trafico"})
     assert resp.status_code == 200
     data = resp.json()
@@ -45,8 +43,7 @@ def test_update_record_admin(client, mock_supabase):
 
 
 def test_update_record_admin_not_found(client, mock_supabase):
-    mock_supabase.set_data([])
-
+    mock_supabase.queue([])
     resp = client.put("/api/admin/records/rec-404", json={"estatus": "Justificado"})
     assert resp.status_code == 404
 
@@ -57,19 +54,18 @@ def test_update_record_admin_empty_payload(client):
 
 
 def test_calendar_empty(client, mock_supabase):
-    mock_supabase.set_data([])
+    mock_supabase.queue([])
     resp = client.get("/api/records/calendar", params={"mes": "2025-06"})
     assert resp.status_code == 200
     assert resp.json() == {}
 
 
 def test_calendar_with_data(client, mock_supabase):
-    mock_supabase.set_data([
+    mock_supabase.queue([
         {"id": "1", "empleado": "Juan", "fecha_hora": "2025-06-05T08:00:00", "estatus": "A Tiempo"},
         {"id": "2", "empleado": "Juan", "fecha_hora": "2025-06-05T17:00:00", "estatus": "A Tiempo"},
         {"id": "3", "empleado": "Maria", "fecha_hora": "2025-06-06T08:30:00", "estatus": "Retardo 1-15 min"},
     ])
-
     resp = client.get("/api/records/calendar", params={"mes": "2025-06"})
     assert resp.status_code == 200
     result = resp.json()
@@ -78,23 +74,21 @@ def test_calendar_with_data(client, mock_supabase):
 
 
 def test_calendar_filter_employee(client, mock_supabase):
-    mock_supabase.set_data([
+    mock_supabase.queue([
         {"id": "1", "empleado": "Juan", "fecha_hora": "2025-06-05T08:00:00", "estatus": "A Tiempo"},
     ])
-
     resp = client.get("/api/records/calendar", params={"mes": "2025-06", "empleado": "Maria"})
     assert resp.status_code == 200
     assert resp.json() == {}
 
 
 def test_export_excel(client, mock_supabase):
-    mock_supabase.set_data([
+    mock_supabase.queue([
         {"id": "1", "empleado": "Juan", "fecha_hora": "2025-06-05T08:00:00", "tipo": "Entrada",
          "estatus": "A Tiempo", "min_retardo": 0, "sucursal_id": "s1", "justificacion": ""},
         {"id": "2", "empleado": "Maria", "fecha_hora": "2025-06-05T08:30:00", "tipo": "Entrada",
          "estatus": "Retardo 1-15 min", "min_retardo": 10, "sucursal_id": "s1", "justificacion": "Trafico"},
     ])
-
     resp = client.get("/api/records/export/excel")
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
