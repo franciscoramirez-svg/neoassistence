@@ -5,6 +5,8 @@ __pycache__/
 .venv/
 .venv_old/
 .env
+.env/*
+bot.env
 backend/.env
 backend/.env.*
 *.egg-info/
