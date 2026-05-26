@@ -21,6 +21,7 @@ type Employee = {
   sueldo_diario?: number;
   numero_empleado?: string;
   foto_url?: string;
+  face_descriptor?: number[] | null;
 };
 
 function getStoredUser() {
@@ -303,7 +304,7 @@ export default function EmpleadosAdminPage() {
                   </td>
                   <td style={{padding:"12px 8px",textAlign:"center",display:"flex",gap:8,justifyContent:"center"}}>
                     <button onClick={() => setShowQR(emp.id + "|" + emp.nombre)} style={{padding:"6px 12px",borderRadius:6,border:"1px solid rgba(94,242,255,0.2)",background:"transparent",color:"#5ef2ff",fontSize:12}}>QR</button>
-                    <button onClick={() => { setFaceEmp(emp.id); setFaceRegistered(false); }} style={{padding:"6px 12px",borderRadius:6,border:"1px solid rgba(156,255,181,0.3)",background:"transparent",color:"#9cffb5",fontSize:12}}>Rostro</button>
+                    <button onClick={() => { setFaceEmp(emp.id); setFaceRegistered(false); }} style={{padding:"6px 12px",borderRadius:6,border:"1px solid " + (emp.face_descriptor ? "rgba(156,255,181,0.4)" : "rgba(255,140,158,0.3)"),background: emp.face_descriptor ? "rgba(156,255,181,0.1)" : "transparent",color: emp.face_descriptor ? "#9cffb5" : "#ff8c9e",fontSize:12}}>{emp.face_descriptor ? "✓ Rostro" : "✗ Rostro"}</button>
                     <button onClick={() => editEmployee(emp)} style={{padding:"6px 12px",borderRadius:6,border:"1px solid rgba(94,242,255,0.2)",background:"transparent",color:"#5ef2ff",fontSize:12}}>Editar</button>
                     <button onClick={() => toggleActivo(emp)} style={{padding:"6px 12px",borderRadius:6,border:"1px solid " + (emp.activo ? "rgba(255,140,158,0.3)" : "rgba(156,255,181,0.3)"),background:"transparent",color: emp.activo ? "#ff8c9e" : "#9cffb5",fontSize:12}}>
                       {emp.activo ? "Desactivar" : "Activar"}
