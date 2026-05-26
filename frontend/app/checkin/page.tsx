@@ -67,7 +67,7 @@ export default function CheckInPage() {
   }, [mounted, user]);
 
   useEffect(() => { if (!user || lat) return; requestLocation(); }, [mounted, user, lat]);
-  useEffect(() => { if (qrMode) startCamera(); else { stopCamera(); setQrScanning(false); } return () => stopCamera(); }, [qrMode]);
+  useEffect(() => { if (qrMode && !qrBranchId) startCamera(); else { stopCamera(); setQrScanning(false); } return () => stopCamera(); }, [qrMode, qrBranchId]);
   useEffect(() => {
     if (countdown > 0) {
       const t = setTimeout(() => setCountdown(countdown - 1), 1000);
@@ -268,6 +268,9 @@ export default function CheckInPage() {
     if (!user?.name) { setError("Sesión no válida"); return; }
     if (!lat || !lon) { setError("Necesitas ubicación válida"); return; }
     setPendingType(type);
+
+    // Stop QR camera before starting selfie to avoid camera conflicts
+    stopCamera();
 
     // If face not verified yet, start selfie capture with face verification
     if (!faceVerified && modelsLoaded && descriptors.length > 0) {
