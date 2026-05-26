@@ -184,44 +184,54 @@ export default function CheckInPage() {
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
       if (selfieVideoRef.current) selfieVideoRef.current.srcObject = stream;
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise(r => setTimeout(r, 800));
 
       if (!faceapiRef.current || !canvasRef.current || !selfieVideoRef.current) throw new Error("refs not ready");
       const faceapi = faceapiRef.current;
       const canvas = canvasRef.current;
-      canvas.width = selfieVideoRef.current.videoWidth || 640;
-      canvas.height = selfieVideoRef.current.videoHeight || 480;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) throw new Error("no canvas ctx");
-      ctx.drawImage(selfieVideoRef.current, 0, 0);
 
-      const result = await Promise.race([
-        faceapi.detectSingleFace(canvas, new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.3 }))
-          .withFaceLandmarks()
-          .withFaceDescriptor(),
-        new Promise<null>((_, reject) => setTimeout(() => reject(new Error("timeout")), 10000)),
-      ]);
+      for (let i = 0; i < 5; i++) {
+        setFaceStatus(i === 0 ? "Buscando rostro..." : `Buscando (${i + 1}/5)...`);
+        canvas.width = selfieVideoRef.current.videoWidth || 640;
+        canvas.height = selfieVideoRef.current.videoHeight || 480;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("no canvas ctx");
+        ctx.drawImage(selfieVideoRef.current, 0, 0);
 
-      if (!result) {
-        setFaceStatus("No se detectó rostro.");
-        return;
+        const result = await Promise.race([
+          faceapi.detectSingleFace(canvas, new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.3 }))
+            .withFaceLandmarks()
+            .withFaceDescriptor(),
+          new Promise<null>((_, reject) => setTimeout(() => reject(new Error("timeout")), 3000)),
+        ]);
+
+        if (result) {
+          const desc = Array.from(result.descriptor as Float32Array);
+          const emp = descriptors.find(d => d.name === user?.name);
+          if (!emp) {
+            setFaceStatus("No tienes rostro registrado. Pide al administrador que registre tu rostro.");
+            return;
+          }
+
+          const dist = euclideanDistance(desc, emp.descriptor);
+          if (dist < 0.45) {
+            setFaceStatus("✓ Rostro verificado");
+            if (stream) stream.getTracks().forEach(t => t.stop());
+            if (selfieVideoRef.current) selfieVideoRef.current.srcObject = null;
+            setFaceVerifying(false);
+            await handleCheckIn(type);
+            return;
+          }
+
+          setFaceStatus("Rostro no reconocido. Reintenta.");
+          return;
+        }
+
+        // Small pause between attempts (but not after the last)
+        if (i < 4) await new Promise(r => setTimeout(r, 1000));
       }
 
-      const desc = Array.from(result.descriptor as Float32Array);
-      const emp = descriptors.find(d => d.name === user?.name);
-      if (!emp) {
-        setFaceStatus("No tienes rostro registrado. Pide al administrador que registre tu rostro.");
-        return;
-      }
-
-      const dist = euclideanDistance(desc, emp.descriptor);
-      if (dist < 0.45) {
-        setFaceStatus("✓ Rostro verificado");
-        await handleCheckIn(type);
-        return;
-      }
-
-      setFaceStatus("Rostro no reconocido. Reintenta.");
+      setFaceStatus("No se detectó rostro después de varios intentos.");
     } catch {
       setFaceStatus("Error al verificar. Reintenta.");
     } finally {
