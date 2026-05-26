@@ -57,6 +57,7 @@ export default function KioskPage() {
   const [faceRegDetected, setFaceRegDetected] = useState(false);
   const [faceRegSaving, setFaceRegSaving] = useState(false);
   const [isIdle, setIsIdle] = useState(false);
+  const [successName, setSuccessName] = useState("");
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -339,6 +340,7 @@ export default function KioskPage() {
       });
       
       setMessage(type === "Entrada" ? "Entrada registrada" : "Salida registrada");
+      setSuccessName(identifiedUser.name);
       setSuccess(true);
       
       setTimeout(() => {
@@ -369,13 +371,26 @@ export default function KioskPage() {
 
   if (success && message) {
     return (
-    <main className="page-shell" style={{display:"flex",flexDirection:"column",alignItems:"center",minHeight:"100vh",padding:"12px 12px 24px"}}>
+    <main className="page-shell" style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100dvh",padding:"12px 12px 24px"}}>
         <NeonClock />
-        <div style={{textAlign:"center",padding:32}}>
-          <div style={{fontSize:80,marginBottom:16}}>&#10003;</div>
-          <h1 style={{color:"#9cffb5",fontSize:28,marginBottom:8}}>REGISTRADO</h1>
-          <p style={{color:"white",fontSize:22}}>{message}</p>
+        <div style={{textAlign:"center",padding:32,animation:"fadeInUp 0.6s ease-out"}}>
+          <div style={{
+            width:120,height:120,borderRadius:"50%",
+            background:"radial-gradient(circle at 30% 30%, rgba(156,255,181,0.3), rgba(94,242,255,0.1))",
+            display:"flex",alignItems:"center",justifyContent:"center",
+            margin:"0 auto 24px",
+            animation:"scaleBounce 0.5s ease-out 0.1s both",
+          }}>
+            <span style={{fontSize:60,color:"#9cffb5",filter:"drop-shadow(0 0 12px rgba(156,255,181,0.6))"}}>&#10003;</span>
+          </div>
+          <h1 style={{color:"#9cffb5",fontSize:28,marginBottom:4,textShadow:"0 0 20px rgba(156,255,181,0.4)"}}>{message.toUpperCase()}</h1>
+          <p style={{color:"white",fontSize:18,marginBottom:4,opacity:0.9}}>{successName}</p>
+          <p style={{color:"#5ef2ff",fontSize:11,opacity:0.6}}>NEOMOTIC</p>
         </div>
+        <style>{`
+          @keyframes fadeInUp { from { opacity:0; transform:translateY(30px) } to { opacity:1; transform:translateY(0) } }
+          @keyframes scaleBounce { 0% { transform:scale(0) } 60% { transform:scale(1.15) } 100% { transform:scale(1) } }
+        `}</style>
       </main>
     );
   }
