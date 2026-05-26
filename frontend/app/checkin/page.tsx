@@ -217,10 +217,10 @@ export default function CheckInPage() {
     try {
       const result = await Promise.race([
         faceapi
-          .detectSingleFace(canvas, new faceapi.TinyFaceDetectorOptions({ inputSize: 320 }))
+          .detectSingleFace(canvas, new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.3 }))
           .withFaceLandmarks()
           .withFaceDescriptor(),
-        new Promise<null>((_, reject) => setTimeout(() => reject(new Error("timeout")), 15000)),
+        new Promise<null>((_, reject) => setTimeout(() => reject(new Error("timeout")), 10000)),
       ]);
       if (!result) {
         setFaceStatus("No se detectó rostro. Repite.");
