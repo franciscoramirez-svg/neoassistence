@@ -49,6 +49,7 @@ export default function CheckInPage() {
   const scanCanvasRef = useRef<HTMLCanvasElement>(null);
   const animFrameRef = useRef<number>(0);
   const faceapiRef = useRef<any>(null);
+  const flowInProgress = useRef(false);
 
   useEffect(() => { setMounted(true); }, []);
   useEffect(() => { if (mounted && !user) router.push("/login"); }, [mounted, user, router]);
@@ -212,6 +213,7 @@ export default function CheckInPage() {
       setFaceStatus("No tienes rostro registrado. Pide al administrador que registre tu rostro.");
       setFaceVerifying(false);
       setFaceVerified(false);
+      flowInProgress.current = false;
       return;
     }
     setFaceStatus("Verificando rostro...");
@@ -227,6 +229,7 @@ export default function CheckInPage() {
         setFaceStatus("No se detectó rostro. Repite.");
         setFaceVerifying(false);
         setFaceVerified(false);
+        flowInProgress.current = false;
         return;
       }
       const desc = Array.from(result.descriptor as Float32Array);
@@ -248,6 +251,7 @@ export default function CheckInPage() {
           setFaceStatus("Rostro verificado ✓");
           setFaceVerified(true);
           setFaceVerifying(false);
+          flowInProgress.current = false;
           return;
         } else {
           setFaceStatus(`Rostro no coincide (${bestMatch.name}). Repite.`);
@@ -260,14 +264,17 @@ export default function CheckInPage() {
     }
     setFaceVerifying(false);
     setFaceVerified(false);
+    flowInProgress.current = false;
   }
 
-  function retakeSelfie() { setSelfieCaptured(false); setSelfieImage(null); setFaceVerified(false); setFaceVerifying(false); startSelfieCapture(); }
+  function retakeSelfie() { flowInProgress.current = false; setSelfieCaptured(false); setSelfieImage(null); setFaceVerified(false); setFaceVerifying(false); startSelfieCapture(); }
 
   function startCheckInFlow(type: "Entrada" | "Salida") {
+    if (flowInProgress.current) return;
+    flowInProgress.current = true;
     setError(""); setMessage("");
-    if (!user?.name) { setError("Sesión no válida"); return; }
-    if (!lat || !lon) { setError("Necesitas ubicación válida"); return; }
+    if (!user?.name) { flowInProgress.current = false; setError("Sesión no válida"); return; }
+    if (!lat || !lon) { flowInProgress.current = false; setError("Necesitas ubicación válida"); return; }
     setPendingType(type);
 
     // Stop QR camera before starting selfie to avoid camera conflicts
@@ -315,6 +322,7 @@ export default function CheckInPage() {
       setError(errMsg);
     } finally {
       setCheckingIn(false);
+      flowInProgress.current = false;
     }
   }
 
