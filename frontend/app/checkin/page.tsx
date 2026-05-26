@@ -40,6 +40,7 @@ export default function CheckInPage() {
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [descriptors, setDescriptors] = useState<{id: string; name: string; descriptor: number[]}[]>([]);
   const [faceVerifying, setFaceVerifying] = useState(false);
+  const [checkingIn, setCheckingIn] = useState(false);
   const [faceVerified, setFaceVerified] = useState(false);
   const [faceStatus, setFaceStatus] = useState("");
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -284,8 +285,9 @@ export default function CheckInPage() {
 
   async function handleCheckIn(type: "Entrada" | "Salida") {
     setError(""); setMessage("");
-    if (!user?.name) { setError("Sesión no válida"); return; }
-    if (!lat || !lon) { setError("Necesitas ubicación válida"); return; }
+    setCheckingIn(true);
+    if (!user?.name) { setCheckingIn(false); setError("Sesión no válida"); return; }
+    if (!lat || !lon) { setCheckingIn(false); setError("Necesitas ubicación válida"); return; }
 
     try {
       const res = await apiRequest<{ message: string }>("/records", {
@@ -311,6 +313,8 @@ export default function CheckInPage() {
       const errMsg = err instanceof Error ? err.message : "Error";
       if (errMsg.includes("justificación")) setShowJustification(true);
       setError(errMsg);
+    } finally {
+      setCheckingIn(false);
     }
   }
 
@@ -398,8 +402,8 @@ export default function CheckInPage() {
         )}
 
         <div style={{display:"flex",gap:16}}>
-          <button onClick={()=>startCheckInFlow("Entrada")} disabled={!lat||!lon} style={{flex:1,padding:18,borderRadius:18,border:"1px solid rgba(94,242,255,0.28)",background:"linear-gradient(135deg, rgba(94,242,255,0.14), rgba(156,255,181,0.08))",color:"white",cursor:lat&&lon?"pointer":"not-allowed",opacity:lat&&lon?1:0.5}}>📥 Entrada</button>
-          <button onClick={()=>startCheckInFlow("Salida")} disabled={!lat||!lon} style={{flex:1,padding:18,borderRadius:18,border:"1px solid rgba(94,242,255,0.18)",background:"rgba(10,21,38,0.8)",color:"white",cursor:lat&&lon?"pointer":"not-allowed",opacity:lat&&lon?1:0.5}}>📤 Salida</button>
+          <button onClick={()=>startCheckInFlow("Entrada")} disabled={!lat||!lon||faceVerifying||selfieMode||checkingIn} style={{flex:1,padding:18,borderRadius:18,border:"1px solid rgba(94,242,255,0.28)",background:"linear-gradient(135deg, rgba(94,242,255,0.14), rgba(156,255,181,0.08))",color:"white",cursor:lat&&lon?"pointer":"not-allowed",opacity:lat&&lon?1:0.5}}>📥 Entrada</button>
+          <button onClick={()=>startCheckInFlow("Salida")} disabled={!lat||!lon||faceVerifying||selfieMode||checkingIn} style={{flex:1,padding:18,borderRadius:18,border:"1px solid rgba(94,242,255,0.18)",background:"rgba(10,21,38,0.8)",color:"white",cursor:lat&&lon?"pointer":"not-allowed",opacity:lat&&lon?1:0.5}}>📤 Salida</button>
         </div>
         {message ? <p style={{color:"#9cffb5",marginTop:16}}>{message}</p> : null}
         {error && !showJustification ? <p style={{color:"#ff8c9e",marginTop:16}}>{error}</p> : null}

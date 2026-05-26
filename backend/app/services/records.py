@@ -130,8 +130,8 @@ def create_record(payload: dict) -> tuple[bool, str, dict | None]:
     if employee_has_recent_duplicate(payload["employee_name"], payload["movement_type"], now_mx):
         return False, "Registro duplicado detectado.", None
 
-    # Kiosko y permiso aprobado bypass geofence check
-    if not source.startswith("kiosko") and not tiene_permiso:
+    # Kiosko, QR y permiso aprobado bypass geofence check
+    if not source.startswith("kiosko") and source != "qr" and not tiene_permiso:
         geofence_ok, geofence_message, distance = validate_geofence(
             payload["lat"],
             payload["lon"],
