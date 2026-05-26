@@ -216,7 +216,6 @@ export default function CheckInPage() {
           const dist = euclideanDistance(desc, emp.descriptor);
           if (dist < 0.45) {
             setFaceStatus("✓ Rostro verificado");
-            console.log("verifyFaceThenCheckIn: face match OK, calling handleCheckIn with type=", type);
             if (stream) stream.getTracks().forEach(t => t.stop());
             if (selfieVideoRef.current) selfieVideoRef.current.srcObject = null;
             setFaceVerifying(false);
@@ -232,10 +231,8 @@ export default function CheckInPage() {
         if (i < 4) await new Promise(r => setTimeout(r, 1000));
       }
 
-      console.log("verifyFaceThenCheckIn: no match after 5 attempts");
       setFaceStatus("No se detectó rostro después de varios intentos.");
-    } catch (e) {
-      console.log("verifyFaceThenCheckIn: catch block, error =", e);
+    } catch {
       setFaceStatus("Error al verificar. Reintenta.");
     } finally {
       if (stream) stream.getTracks().forEach(t => t.stop());
@@ -252,28 +249,23 @@ export default function CheckInPage() {
     if (!lat || !lon) { setCheckingIn(false); setError("Necesitas ubicación válida"); return; }
 
     try {
-      const payload = {
-        employee_name: user.name,
-        movement_type: type,
-        lat, lon,
-        branch_id: qrBranchId || undefined,
-        justification: justification || null,
-        source: qrBranchId ? "qr" : "web",
-      };
-      console.log("handleCheckIn: payload =", JSON.stringify(payload));
       const res = await apiRequest<{ message: string }>("/records", {
         method: "POST",
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          employee_name: user.name,
+          movement_type: type,
+          lat, lon,
+          branch_id: qrBranchId || undefined,
+          justification: justification || null,
+          source: qrBranchId ? "qr" : "web",
+        }),
       });
-      console.log("handleCheckIn: response =", res);
       setMessage(res.message);
       setJustification("");
       setShowJustification(false);
       setFaceStatus("");
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : "Error";
-      alert("Error al registrar: " + errMsg);
-      console.log("handleCheckIn: error =", errMsg);
       if (errMsg.includes("justificación")) setShowJustification(true);
       setError(errMsg);
     } finally {
@@ -359,7 +351,7 @@ export default function CheckInPage() {
           <button onClick={()=>startCheckInFlow("Salida")} disabled={!lat||!lon||faceVerifying||checkingIn} style={{flex:1,padding:18,borderRadius:18,border:"1px solid rgba(94,242,255,0.18)",background:"rgba(10,21,38,0.8)",color:"white",cursor:lat&&lon?"pointer":"not-allowed",opacity:lat&&lon?1:0.5}}>📤 Salida</button>
         </div>}
         {message ? <p style={{color:"#9cffb5",marginTop:16}}>{message}</p> : null}
-        {error && !showJustification ? <p style={{color:"#ff8c9e",marginTop:16}}>{error}</p> : null}
+        {error && !showJustification ? <p style={{color:"#ff8c9e",marginTop:16,fontWeight:"bold",fontSize:14,background:"rgba(255,140,158,0.1)",padding:12,borderRadius:12,border:"1px solid rgba(255,140,158,0.3)"}}>{error}</p> : null}
       </section>
     </main>
   );
