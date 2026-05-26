@@ -260,7 +260,8 @@ export default function CheckInPage() {
     setPendingType(type);
 
     // If face not verified yet, start selfie capture with face verification
-    if (!faceVerified && modelsLoaded && descriptors.length > 0) {
+    const userHasFace = descriptors.some(d => d.name === user?.name);
+    if (!faceVerified && modelsLoaded && userHasFace) {
       startSelfieCapture(true);
       return;
     }

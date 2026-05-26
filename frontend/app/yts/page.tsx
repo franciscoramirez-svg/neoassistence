@@ -92,7 +92,7 @@ export default function YTSPage() {
 
   const canUpload = user?.role === "admin" || user?.role?.toLowerCase().includes("supervisor");
   const isSupervisor = user?.role?.toLowerCase().includes("supervisor");
-  const goBack = user?.role === "admin" ? "/dashboard" : "/supervisor";
+  const goBack = user?.role === "admin" ? "/dashboard" : user?.role === "empleado" ? "/empleado" : "/supervisor";
 
   if (!mounted || !user) {
     return (
@@ -117,7 +117,7 @@ export default function YTSPage() {
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
         <h1 style={{color:"#d08aff",fontSize:20,margin:0}}>Yo Trabajo Seguro</h1>
         <div style={{display:"flex",gap:8}}>
-          {(isSupervisor || user?.role === "admin") && <button onClick={()=>router.push(goBack)} style={{padding:"8px 14px",borderRadius:8,border:"1px solid rgba(94,242,255,0.3)",background:"transparent",color:"#5ef2ff",fontSize:12}}>Volver</button>}
+          <button onClick={()=>router.push(goBack)} style={{padding:"8px 14px",borderRadius:8,border:"1px solid rgba(94,242,255,0.3)",background:"transparent",color:"#5ef2ff",fontSize:12}}>Volver</button>
           <button onClick={()=>{localStorage.removeItem("neoassistence_user"); router.push("/login");}} style={{padding:"8px 14px",borderRadius:8,border:"1px solid rgba(255,140,158,0.3)",background:"transparent",color:"#ff8c9e",fontSize:12}}>Salir</button>
         </div>
       </div>
