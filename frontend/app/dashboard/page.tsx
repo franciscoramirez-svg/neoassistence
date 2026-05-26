@@ -110,11 +110,11 @@ export default function DashboardPage() {
   const entradas = filteredRecords.filter(r => r.tipo === "Entrada").length;
   const salidas = filteredRecords.filter(r => r.tipo === "Salida").length;
   const aTiempo = filteredRecords.filter(r => r.estatus === "A Tiempo").length;
-  const retardos = filteredRecords.filter(r => r.estatus?.includes("Retardo")).length;
+  const retardos = filteredRecords.filter(r => r.estatus?.toLowerCase().includes("retardo")).length;
 
   const statusPie = Object.entries(
     filteredRecords.reduce((acc, r) => {
-      const key = r.estatus?.includes("Retardo") ? "Retardo" : r.estatus === "A Tiempo" ? "A Tiempo" : r.estatus === "Permiso" ? "Permiso" : r.estatus?.includes("OLVIDO") ? "OLVIDO REGISTRO" : "Otros";
+      const key = r.estatus?.toLowerCase().includes("retardo") ? "Retardo" : r.estatus === "A Tiempo" ? "A Tiempo" : r.estatus === "Permiso" ? "Permiso" : r.estatus?.includes("OLVIDO") ? "OLVIDO REGISTRO" : "Otros";
       acc[key] = (acc[key] || 0) + 1;
       return acc;
     }, {} as Record<string, number>)

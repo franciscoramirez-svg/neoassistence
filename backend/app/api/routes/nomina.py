@@ -45,7 +45,7 @@ def calcular_nomina(periodo_inicio: str, periodo_fin: str, empleado: Optional[st
                 except:
                     pass
             est = pair["entrada"] and pair["entrada"].get("estatus", "")
-            if est and "Retardo" in est:
+            if est and "retardo" in est.lower():
                 total_retardos_min += pair["entrada"].get("min_retardo", 10)
             if pair["entrada"] and pair["entrada"].get("estatus") == "Incidencia":
                 incidencias += 1

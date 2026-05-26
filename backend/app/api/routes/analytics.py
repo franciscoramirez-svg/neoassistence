@@ -39,7 +39,7 @@ def ranking_puntualidad(periodo_inicio: Optional[str] = None, periodo_fin: Optio
             continue
         emp_stats[name]["total"] += 1
         est = r.get("estatus", "")
-        if "Retardo" in est:
+        if "retardo" in est.lower():
             emp_stats[name]["retardos"] += 1
             emp_stats[name]["retardo_min"] += r.get("min_retardo", 0)
         elif est == "A Tiempo":
@@ -88,7 +88,7 @@ def retardos_mensuales(anio: Optional[int] = None):
         except:
             continue
         meses[mes]["total"] += 1
-        if "Retardo" in (r.get("estatus", "")):
+        if "retardo" in (r.get("estatus", "")).lower():
             meses[mes]["retardos"] += 1
 
     result = []
@@ -126,7 +126,7 @@ def tendencias(meses: Optional[int] = 6):
         else:
             meses_data[key]["salidas"] += 1
         est = r.get("estatus", "")
-        if "Retardo" in est:
+        if "retardo" in est.lower():
             meses_data[key]["retardos"] += 1
         elif est == "A Tiempo":
             meses_data[key]["a_tiempo"] += 1
@@ -178,7 +178,7 @@ def sucursales_stats(periodo_inicio: Optional[str] = None, periodo_fin: Optional
                 "total": len(day_recs),
                 "entradas": sum(1 for r in day_recs if r["tipo"] == "Entrada"),
                 "salidas": sum(1 for r in day_recs if r["tipo"] == "Salida"),
-                "retardos": sum(1 for r in day_recs if "Retardo" in (r.get("estatus", ""))),
+                "retardos": sum(1 for r in day_recs if "retardo" in (r.get("estatus", "")).lower()),
             })
 
         total_entradas = sum(t["entradas"] for t in trend)
@@ -219,7 +219,7 @@ def historial_puntualidad(empleado: str, meses: Optional[int] = 12):
             continue
         meses_data[key]["total"] += 1
         est = r.get("estatus", "")
-        if "Retardo" in est:
+        if "retardo" in est.lower():
             meses_data[key]["retardos"] += 1
         elif est == "A Tiempo":
             meses_data[key]["a_tiempo"] += 1
@@ -285,7 +285,7 @@ def check_retardo_thresholds():
 
     emp_retardos = defaultdict(int)
     for r in records:
-        if "Retardo" in (r.get("estatus", "")):
+        if "retardo" in (r.get("estatus", "")).lower():
             emp_retardos[r.get("empleado", "")] += 1
 
     for emp_name, count in emp_retardos.items():

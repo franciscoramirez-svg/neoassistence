@@ -92,7 +92,7 @@ export default function HistorialPage() {
                     <tr key={r.id} style={{borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
                       <td style={{padding:"8px",color:"white"}}>{new Date(r.fecha_hora).toLocaleString("es-MX")}</td>
                       <td style={{padding:"8px",color:"#9bb4ca"}}>{r.tipo}</td>
-                      <td style={{padding:"8px",textAlign:"center",color: r.estatus === "A Tiempo" ? "#9cffb5" : r.estatus?.includes("Retardo") ? "#ff8c9e" : r.estatus === "Permiso" ? "#5ef2ff" : "#ffcc5e"}}>{r.estatus}</td>
+                      <td style={{padding:"8px",textAlign:"center",color: r.estatus === "A Tiempo" ? "#9cffb5" : r.estatus?.toLowerCase().includes("retardo") ? "#ff8c9e" : r.estatus === "Permiso" ? "#5ef2ff" : "#ffcc5e"}}>{r.estatus}</td>
                     </tr>
                   ))}
                 </tbody>

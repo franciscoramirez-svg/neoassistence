@@ -49,7 +49,7 @@ export default function SupervisorPage() {
   const hoyRecords = records.filter(r => r.fecha_hora?.startsWith(hoy));
   const entradas = hoyRecords.filter(r => r.tipo === "Entrada").length;
   const salidas = hoyRecords.filter(r => r.tipo === "Salida").length;
-  const retardos = hoyRecords.filter(r => r.estatus?.includes("Retardo")).length;
+  const retardos = hoyRecords.filter(r => r.estatus?.toLowerCase().includes("retardo")).length;
   const aTiempo = entradas - retardos;
   const totalHoy = hoyRecords.length;
 

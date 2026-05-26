@@ -42,7 +42,7 @@ def calendar_data(mes: str, empleado: Optional[str] = None):
         days[d].append(r.get("estatus", ""))
     result = {}
     for d, statuses in days.items():
-        if any("Retardo" in s for s in statuses):
+        if any("retardo" in s.lower() for s in statuses):
             result[d] = "retardo"
         elif any(s == "Permiso" for s in statuses):
             result[d] = "permiso"
@@ -255,11 +255,11 @@ def export_semanal(fecha_inicio: str, fecha_fin: str):
                 continue
 
             est = entrada_recs[0].get("estatus", "")
-            if "Retardo" in est:
+            if "retardo" in est.lower():
                 day_values.append(("⚠️", rojo_fill, Font(size=14, color="FFFFFF")))
                 trabajados += 1
                 total_retardos += 1
-                total_ret_min += sum(r.get("min_retardo", 0) for r in entrada_recs if "Retardo" in r.get("estatus", ""))
+                total_ret_min += sum(r.get("min_retardo", 0) for r in entrada_recs if "retardo" in r.get("estatus", "").lower())
             else:
                 day_values.append(("✅", verde_fill, Font(size=14, color="003300")))
                 trabajados += 1

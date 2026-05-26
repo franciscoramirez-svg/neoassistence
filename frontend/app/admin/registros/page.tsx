@@ -136,7 +136,7 @@ export default function AdminRegistrosPage() {
                           <option value="Permiso">Permiso</option>
                         </select>
                       ) : (
-                        <span style={{color: r.estatus === "A Tiempo" ? "#9cffb5" : r.estatus?.includes("Retardo") ? "#ff8c9e" : r.estatus === "Permiso" ? "#5ef2ff" : "#ffcc5e"}}>{r.estatus}</span>
+                        <span style={{color: r.estatus === "A Tiempo" ? "#9cffb5" : r.estatus?.toLowerCase().includes("retardo") ? "#ff8c9e" : r.estatus === "Permiso" ? "#5ef2ff" : "#ffcc5e"}}>{r.estatus}</span>
                       )}
                     </td>
                     <td style={{padding:"8px"}}>

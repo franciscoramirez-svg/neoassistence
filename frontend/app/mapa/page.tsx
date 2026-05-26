@@ -82,7 +82,7 @@ export default function MapaPage() {
         
         branches.forEach(branch => {
           const branchRecords = records.filter(r => r.sucursal_id === branch.id && r.fecha_hora?.startsWith(today));
-          const hasRetardo = branchRecords.some(r => r.estatus?.includes("Retardo"));
+          const hasRetardo = branchRecords.some(r => r.estatus?.toLowerCase().includes("retardo"));
           const total = branchRecords.length;
           
           const icon = L.divIcon({
@@ -109,7 +109,7 @@ export default function MapaPage() {
               <div style="display: flex; justify-content: space-around; font-size: 12px;">
                 <span>📥 ${branchRecords.filter(r => r.tipo === "Entrada").length}</span>
                 <span>📤 ${branchRecords.filter(r => r.tipo === "Salida").length}</span>
-                <span style="color: ${hasRetardo ? "#d04aff" : "#5ef2ff"}">⏱ ${branchRecords.filter(r => r.estatus?.includes("Retardo")).length}</span>
+                <span style="color: ${hasRetardo ? "#d04aff" : "#5ef2ff"}">⏱ ${branchRecords.filter(r => r.estatus?.toLowerCase().includes("retardo")).length}</span>
               </div>
             </div>
           `);
@@ -136,7 +136,7 @@ export default function MapaPage() {
       total: branchRecords.length,
       entradas: branchRecords.filter(r => r.tipo === "Entrada").length,
       salidas: branchRecords.filter(r => r.tipo === "Salida").length,
-      retardos: branchRecords.filter(r => r.estatus?.includes("Retardo")).length,
+      retardos: branchRecords.filter(r => r.estatus?.toLowerCase().includes("retardo")).length,
     };
   };
 

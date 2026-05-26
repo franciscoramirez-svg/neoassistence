@@ -280,7 +280,7 @@ export default function ReportesPage() {
                       <td style={{ padding: "10px 8px" }}>{new Date(r.fecha_hora).toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</td>
                       <td style={{ padding: "10px 8px" }}>{r.empleado}</td>
                       <td style={{ padding: "10px 8px" }}>{r.tipo}</td>
-                      <td style={{ padding: "10px 8px", color: r.estatus?.includes("Retardo") ? "#ff8c9e" : "#9cffb5", fontSize: 13 }}>{r.estatus}</td>
+                      <td style={{ padding: "10px 8px", color: r.estatus?.toLowerCase().includes("retardo") ? "#ff8c9e" : "#9cffb5", fontSize: 13 }}>{r.estatus}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -54,7 +54,7 @@ def get_daily_report(date: str = None) -> dict:
     total = len(items)
     entradas = len([r for r in items if r.get("tipo") == "Entrada"])
     salidas = len([r for r in items if r.get("tipo") == "Salida"])
-    retardos = len([r for r in items if r.get("estatus", "").startswith("Retardo")])
+    retardos = len([r for r in items if "retardo" in r.get("estatus", "").lower()])
     
     por_empleado = {}
     for r in items:
@@ -66,7 +66,7 @@ def get_daily_report(date: str = None) -> dict:
             por_empleado[nombre]["entradas"] += 1
         elif r.get("tipo") == "Salida":
             por_empleado[nombre]["salidas"] += 1
-        if r.get("estatus", "").startswith("Retardo"):
+        if "retardo" in r.get("estatus", "").lower():
             por_empleado[nombre]["retardos"] += 1
     
     por_sucursal = {}
@@ -76,7 +76,7 @@ def get_daily_report(date: str = None) -> dict:
         if nombre not in por_sucursal:
             por_sucursal[nombre] = {"total": 0, "retardos": 0}
         por_sucursal[nombre]["total"] += 1
-        if r.get("estatus", "").startswith("Retardo"):
+        if "retardo" in r.get("estatus", "").lower():
             por_sucursal[nombre]["retardos"] += 1
     
     return {
@@ -89,6 +89,27 @@ def get_daily_report(date: str = None) -> dict:
         "por_empleado": por_empleado,
         "por_sucursal": por_sucursal,
     }
+
+def send_notification_email(to_email: str, subject: str, body_text: str) -> bool:
+    try:
+        if not settings.smtp_user or not settings.smtp_password:
+            print(f"[EMAIL] SMTP no configurado. Simulando envío a {to_email}: {subject}")
+            return True
+        msg = MIMEText(body_text, "plain")
+        msg["From"] = settings.email_from or settings.smtp_user
+        msg["To"] = to_email
+        msg["Subject"] = subject
+        server = smtplib.SMTP(settings.smtp_host, settings.smtp_port)
+        server.starttls()
+        server.login(settings.smtp_user, settings.smtp_password)
+        server.send_message(msg)
+        server.quit()
+        print(f"[EMAIL] Notificación enviada a {to_email}: {subject}")
+        return True
+    except Exception as e:
+        print(f"[EMAIL] Error: {e}")
+        return False
+
 
 def send_email_report(report: dict, to_email: str) -> bool:
     try:
