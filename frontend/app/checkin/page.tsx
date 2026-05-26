@@ -208,10 +208,13 @@ export default function CheckInPage() {
     const canvas = canvasRef.current;
     setFaceStatus("Verificando rostro...");
     try {
-      const result = await faceapi
-        .detectSingleFace(canvas, new faceapi.TinyFaceDetectorOptions({ inputSize: 320 }))
-        .withFaceLandmarks()
-        .withFaceDescriptor();
+      const result = await Promise.race([
+        faceapi
+          .detectSingleFace(canvas, new faceapi.TinyFaceDetectorOptions({ inputSize: 320 }))
+          .withFaceLandmarks()
+          .withFaceDescriptor(),
+        new Promise<null>((_, reject) => setTimeout(() => reject(new Error("timeout")), 15000)),
+      ]);
       if (!result) {
         setFaceStatus("No se detectó rostro. Repite.");
         setFaceVerifying(false);
@@ -245,7 +248,7 @@ export default function CheckInPage() {
         setFaceStatus("Rostro no reconocido. Repite.");
       }
     } catch {
-      setFaceStatus("Error al verificar. Repite.");
+      setFaceStatus("Error al verificar (tiempo agotado). Repite o cierra e intenta de nuevo.");
     }
     setFaceVerifying(false);
     setFaceVerified(false);
@@ -260,8 +263,7 @@ export default function CheckInPage() {
     setPendingType(type);
 
     // If face not verified yet, start selfie capture with face verification
-    const userHasFace = descriptors.some(d => d.name === user?.name);
-    if (!faceVerified && modelsLoaded && userHasFace) {
+    if (!faceVerified && modelsLoaded && descriptors.length > 0) {
       startSelfieCapture(true);
       return;
     }
