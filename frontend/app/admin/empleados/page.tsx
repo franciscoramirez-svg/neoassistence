@@ -56,14 +56,17 @@ export default function EmpleadosAdminPage() {
 
   const [showQR, setShowQR] = useState<string | null>(null);
   const [faceEmp, setFaceEmp] = useState<string | null>(null);
+  const [faceEmpName, setFaceEmpName] = useState("");
   const faceVideoRef = useRef<HTMLVideoElement>(null);
   const faceapiRef = useRef<any>(null);
   const [faceLoaded, setFaceLoaded] = useState(false);
   const [faceDetected, setFaceDetected] = useState(false);
   const [savingFace, setSavingFace] = useState(false);
   const [faceRegistered, setFaceRegistered] = useState(false);
+
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const faceIntervalRef = useRef<any>(null);
   
   // Fix for checkbox - ensure boolean
   const horasExtraChecked = !!formData.horas_extra;
@@ -84,9 +87,6 @@ export default function EmpleadosAdminPage() {
     } catch {}
     setLoading(false);
   }
-
-  // Face registration functions
-  let faceInterval: any = null;
 
   useEffect(() => {
     if (!faceEmp) return;
@@ -135,11 +135,8 @@ export default function EmpleadosAdminPage() {
     try {
       const detection = await faceapi.detectSingleFace(faceVideoRef.current, new faceapi.TinyFaceDetectorOptions({ inputSize: 320 }));
       setFaceDetected(!!detection);
-      if (detection) console.log("Face detected");
-    } catch (e) {
-      console.log("Detection error:", e);
-    }
-    faceInterval = setTimeout(detectFaceLoop, 800);
+    } catch {}
+    faceIntervalRef.current = setTimeout(detectFaceLoop, 800);
   }
 
   async function registerFace() {
@@ -159,6 +156,7 @@ export default function EmpleadosAdminPage() {
         body: JSON.stringify({ face_descriptor: descriptor }),
       });
       setFaceRegistered(true);
+      loadEmployees();
     } catch (e) {
       console.error("Error registering face:", e);
       toast("Error al registrar rostro", "error");
@@ -167,7 +165,7 @@ export default function EmpleadosAdminPage() {
   }
 
   function closeFaceCamera() {
-    if (faceInterval) clearTimeout(faceInterval);
+    if (faceIntervalRef.current) { clearTimeout(faceIntervalRef.current); faceIntervalRef.current = null; }
     if (faceVideoRef.current?.srcObject) {
       const stream = faceVideoRef.current.srcObject as MediaStream;
       stream.getTracks().forEach(t => t.stop());
@@ -304,7 +302,7 @@ export default function EmpleadosAdminPage() {
                   </td>
                   <td style={{padding:"12px 8px",textAlign:"center",display:"flex",gap:8,justifyContent:"center"}}>
                     <button onClick={() => setShowQR(emp.id + "|" + emp.nombre)} style={{padding:"6px 12px",borderRadius:6,border:"1px solid rgba(94,242,255,0.2)",background:"transparent",color:"#5ef2ff",fontSize:12}}>QR</button>
-                    <button onClick={() => { setFaceEmp(emp.id); setFaceRegistered(false); }} style={{padding:"6px 12px",borderRadius:6,border:"1px solid " + (emp.face_descriptor ? "rgba(156,255,181,0.4)" : "rgba(255,140,158,0.3)"),background: emp.face_descriptor ? "rgba(156,255,181,0.1)" : "transparent",color: emp.face_descriptor ? "#9cffb5" : "#ff8c9e",fontSize:12}}>{emp.face_descriptor ? "✓ Rostro" : "✗ Rostro"}</button>
+                    <button onClick={() => { setFaceEmp(emp.id); setFaceEmpName(emp.nombre); setFaceRegistered(false); setFaceDetected(false); }} style={{padding:"6px 12px",borderRadius:6,border:"1px solid " + (emp.face_descriptor ? "rgba(156,255,181,0.4)" : "rgba(255,140,158,0.3)"),background: emp.face_descriptor ? "rgba(156,255,181,0.1)" : "transparent",color: emp.face_descriptor ? "#9cffb5" : "#ff8c9e",fontSize:12}}>{emp.face_descriptor ? "✓ Rostro" : "✗ Rostro"}</button>
                     <button onClick={() => editEmployee(emp)} style={{padding:"6px 12px",borderRadius:6,border:"1px solid rgba(94,242,255,0.2)",background:"transparent",color:"#5ef2ff",fontSize:12}}>Editar</button>
                     <button onClick={() => toggleActivo(emp)} style={{padding:"6px 12px",borderRadius:6,border:"1px solid " + (emp.activo ? "rgba(255,140,158,0.3)" : "rgba(156,255,181,0.3)"),background:"transparent",color: emp.activo ? "#ff8c9e" : "#9cffb5",fontSize:12}}>
                       {emp.activo ? "Desactivar" : "Activar"}
@@ -417,12 +415,13 @@ export default function EmpleadosAdminPage() {
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.9)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100}}>
           <div className="glass" style={{maxWidth:320,width:"85%",padding:16,borderRadius:12}}>
             <h2 style={{color:"#5ef2ff",marginTop:0,fontSize:16}}>Registrar Rostro</h2>
-            <div style={{borderRadius:8,overflow:"hidden",background:"#000",marginBottom:10,height:240,display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <p style={{color:"#9cffb5",fontSize:14,marginBottom:10}}>{faceEmpName}</p>
+            <div style={{borderRadius:8,overflow:"hidden",background:"#000",marginBottom:10,height:240,display:"flex",alignItems:"center",justifyContent:"center",border: faceDetected ? "2px solid rgba(156,255,181,0.6)" : "2px solid transparent",boxShadow: faceDetected ? "0 0 12px rgba(156,255,181,0.3)" : "none",transition:"all 0.3s"}}>
               <video ref={faceVideoRef} autoPlay playsInline muted style={{width:"100%",height:"100%",objectFit:"cover"}} />
               {!faceLoaded && <p style={{color:"#9bb4ca",position:"absolute",fontSize:13}}>Cargando modelos...</p>}
             </div>
-            <p style={{color:"#9bb4ca",fontSize:13,textAlign:"center",marginBottom:12}}>
-              {faceRegistered ? "Registrado" : faceDetected ? "Rostro detectado" : "Coloca tu rostro frente a la cámara"}
+            <p style={{color:faceDetected?"#9cffb5":"#9bb4ca",fontSize:13,textAlign:"center",marginBottom:12}}>
+              {faceDetected ? "✓ Rostro detectado" : "Coloca tu rostro frente a la cámara"}
             </p>
             <div style={{display:"flex",gap:8}}>
               <button onClick={registerFace} disabled={!faceDetected || savingFace} style={{flex:1,padding:10,borderRadius:8,border:"1px solid rgba(156,255,181,0.3)",background:faceDetected?"rgba(156,255,181,0.2)":"#1a2a3a",color:"white",fontWeight:"bold",fontSize:13,opacity:faceDetected?1:0.5}}>
