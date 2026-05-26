@@ -38,6 +38,7 @@ export default function CheckInPage() {
   const [faceVerifying, setFaceVerifying] = useState(false);
   const [checkingIn, setCheckingIn] = useState(false);
   const [faceStatus, setFaceStatus] = useState("");
+  const [faceInFrame, setFaceInFrame] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const selfieVideoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);

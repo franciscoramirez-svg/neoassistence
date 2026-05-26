@@ -73,25 +73,34 @@ export default function DashboardPage() {
   useEffect(() => { setMounted(true); }, []);
   useEffect(() => { if (mounted && !user) router.push("/login"); }, [mounted, user, router]);
 
-  useEffect(() => {
+  async function loadDashboardData() {
     if (!user) return;
-    setLoading(true);
-    Promise.all([
-      apiRequest<{ data: { items: RecordItem[] } }>("/records").then(r => r.data?.items || []),
-      apiRequest<any>("/branches").then(r => r.data || []).catch(() => []),
-      apiRequest<{ data: RankItem[] }>("/analytics/ranking").then(r => r.data || []).catch(() => []),
-      apiRequest<{ data: any[] }>("/analytics/retardos-mensuales").then(r => r.data || []).catch(() => []),
-      apiRequest<{ data: any[] }>("/analytics/tendencias").then(r => r.data || []).catch(() => []),
-      apiRequest<{ data: any[] }>("/analytics/sucursales").then(r => r.data || []).catch(() => []),
-    ]).then(([rec, bra, rnk, ret, tend, suc]) => {
+    try {
+      const [rec, bra, rnk, ret, tend, suc] = await Promise.all([
+        apiRequest<{ data: { items: RecordItem[] } }>("/records").then(r => r.data?.items || []),
+        apiRequest<any>("/branches").then(r => r.data || []).catch(() => []),
+        apiRequest<{ data: RankItem[] }>("/analytics/ranking").then(r => r.data || []).catch(() => []),
+        apiRequest<{ data: any[] }>("/analytics/retardos-mensuales").then(r => r.data || []).catch(() => []),
+        apiRequest<{ data: any[] }>("/analytics/tendencias").then(r => r.data || []).catch(() => []),
+        apiRequest<{ data: any[] }>("/analytics/sucursales").then(r => r.data || []).catch(() => []),
+      ]);
       setRecords(rec);
       setBranches(Array.isArray(bra) ? bra : []);
       setRanking(rnk);
       setRetardosMensuales(ret);
       setTendencias(tend);
       setSucursalesAnalytics(suc);
-      setLoading(false);
-    }).catch(() => setLoading(false));
+    } catch {}
+    setLoading(false);
+  }
+
+  useEffect(() => { setLoading(true); loadDashboardData(); }, [user]);
+
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
+    if (!user) return;
+    const interval = setInterval(loadDashboardData, 30000);
+    return () => clearInterval(interval);
   }, [user]);
 
   if (!mounted || !user) return <main className="page-shell"><div className="skeleton" style={{width:"100%",height:300,borderRadius:24}} /></main>;
@@ -177,6 +186,25 @@ export default function DashboardPage() {
         <span style={{color:"#9bb4ca"}}>{user.name}</span>
         <button onClick={()=>{localStorage.removeItem("neoassistence_user");router.push("/login");}} style={{background:"none",border:"none",color:"#ff8c9e",cursor:"pointer"}}>Cerrar sesión</button>
       </nav>
+
+      <section className="glass" style={{padding:16,marginBottom:20}}>
+        <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+          <Link href="/kiosko" style={{padding:"10px 14px",borderRadius:10,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none",fontSize:12}}>📷 Kiosko</Link>
+          <Link href="/reportes" style={{padding:"10px 14px",borderRadius:10,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none",fontSize:12}}>📊 Reportes</Link>
+          <Link href="/reportes-auto" style={{padding:"10px 14px",borderRadius:10,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none",fontSize:12}}>📧 Auto-reporte</Link>
+          <Link href="/mapa" style={{padding:"10px 14px",borderRadius:10,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none",fontSize:12}}>🗺️ Mapa</Link>
+          <Link href="/admin/empleados" style={{padding:"10px 14px",borderRadius:10,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none",fontSize:12}}>👥 Empleados</Link>
+          <Link href="/admin/qrs" style={{padding:"10px 14px",borderRadius:10,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none",fontSize:12}}>📱 QR</Link>
+          <Link href="/yts" style={{padding:"10px 14px",borderRadius:10,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none",fontSize:12}}>YTS</Link>
+          <Link href="/empleado" style={{padding:"10px 14px",borderRadius:10,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none",fontSize:12}}>Mi Credencial</Link>
+          <Link href="/incidencias" style={{padding:"10px 14px",borderRadius:10,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none",fontSize:12}}>⚠️ Incidencias</Link>
+          <Link href="/permisos" style={{padding:"10px 14px",borderRadius:10,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none",fontSize:12}}>🏖️ Permisos</Link>
+          <Link href="/calendario" style={{padding:"10px 14px",borderRadius:10,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none",fontSize:12}}>📅 Calendario</Link>
+          <Link href="/historial" style={{padding:"10px 14px",borderRadius:10,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none",fontSize:12}}>📋 Mi historial</Link>
+          <Link href="/admin/registros" style={{padding:"10px 14px",borderRadius:10,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none",fontSize:12}}>✏️ Editar registros</Link>
+          <Link href="/admin/nomina" style={{padding:"10px 14px",borderRadius:10,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none",fontSize:12}}>💰 Nómina</Link>
+        </div>
+      </section>
 
       <div className="glass" style={{padding:24,marginBottom:24}}>
         <h1 style={{margin:0,fontSize:28}}>Dashboard</h1>
@@ -362,25 +390,7 @@ export default function DashboardPage() {
         </section>
       )}
 
-      <section className="glass" style={{padding:24}}>
-        <h2 style={{marginTop:0,marginBottom:16}}>Acciones</h2>
-        <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
-          <Link href="/kiosko" style={{padding:"14px 18px",borderRadius:12,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none"}}>📷 Kiosko</Link>
-          <Link href="/reportes" style={{padding:"14px 18px",borderRadius:12,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none"}}>📊 Reportes</Link>
-          <Link href="/reportes-auto" style={{padding:"14px 18px",borderRadius:12,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none"}}>📧 Auto-reporte</Link>
-          <Link href="/mapa" style={{padding:"14px 18px",borderRadius:12,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none"}}>🗺️ Mapa</Link>
-          <Link href="/admin/empleados" style={{padding:"14px 18px",borderRadius:12,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none"}}>Empleados</Link>
-          <Link href="/admin/qrs" style={{padding:"14px 18px",borderRadius:12,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none"}}>📱 QR</Link>
-          <Link href="/yts" style={{padding:"14px 18px",borderRadius:12,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none"}}>YTS</Link>
-          <Link href="/empleado" style={{padding:"14px 18px",borderRadius:12,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none"}}>Mi Credencial</Link>
-          <Link href="/incidencias" style={{padding:"14px 18px",borderRadius:12,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none"}}>⚠️ Incidencias</Link>
-          <Link href="/permisos" style={{padding:"14px 18px",borderRadius:12,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none"}}>🏖️ Permisos</Link>
-          <Link href="/calendario" style={{padding:"14px 18px",borderRadius:12,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none"}}>📅 Calendario</Link>
-          <Link href="/historial" style={{padding:"14px 18px",borderRadius:12,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none"}}>📋 Mi historial</Link>
-          <Link href="/admin/registros" style={{padding:"14px 18px",borderRadius:12,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none"}}>✏️ Editar registros</Link>
-          <Link href="/admin/nomina" style={{padding:"14px 18px",borderRadius:12,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none"}}>💰 Nómina</Link>
-        </div>
-      </section>
+
     </main>
   );
 }

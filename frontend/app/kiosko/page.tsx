@@ -57,6 +57,7 @@ export default function KioskPage() {
   const [faceRegDetected, setFaceRegDetected] = useState(false);
   const [faceRegSaving, setFaceRegSaving] = useState(false);
   const [isIdle, setIsIdle] = useState(false);
+  const [faceInFrame, setFaceInFrame] = useState(false);
   const [successName, setSuccessName] = useState("");
   
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -190,6 +191,7 @@ export default function KioskPage() {
           .withFaceDescriptor();
         
         if (result) {
+          setFaceInFrame(true);
           resetIdleTimer();
           if (showFaceReg) {
             setFaceRegDetected(true);
@@ -217,6 +219,7 @@ export default function KioskPage() {
             setFaceStatus(bestMatch && bestMatch.distance < 0.7 ? "Rostro desconocido" : "Buscando...");
           }
         } else {
+          setFaceInFrame(false);
           if (showFaceReg) setFaceRegDetected(false);
           setFaceStatus("Coloca tu rostro frente a la cámara");
         }
@@ -433,7 +436,7 @@ export default function KioskPage() {
       <div style={{width:"100%",maxWidth:380}}>
         <h2 style={{color:"#5ef2ff",fontSize:16,marginBottom:8,textAlign:"center"}}>RECONOCIMIENTO FACIAL</h2>
         
-        <div style={{borderRadius:12,overflow:"hidden",background:"#000",marginBottom:8,height:260,position:"relative"}}>
+        <div style={{borderRadius:12,overflow:"hidden",background:"#000",marginBottom:8,height:260,position:"relative",border: faceInFrame ? "2px solid rgba(156,255,181,0.6)" : "2px solid transparent",boxShadow: faceInFrame ? "0 0 16px rgba(156,255,181,0.3)" : "none",transition:"all 0.3s"}}>
           <video ref={videoRef} autoPlay playsInline muted style={{width:"100%",height:"100%",objectFit:"cover"}} />
           <canvas ref={canvasRef} style={{position:"absolute",top:0,left:0,width:"100%",height:"100%"}} />
         </div>
