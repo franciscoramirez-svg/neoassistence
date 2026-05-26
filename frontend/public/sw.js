@@ -9,49 +9,41 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(clients.claim());
 });
 
+async function cacheThenReturn(request, res, cacheName) {
+  const cloned = res.clone();
+  const cache = await caches.open(cacheName);
+  cache.put(request, cloned);
+  return res;
+}
+
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  // Only handle same-origin requests
   if (url.origin !== self.location.origin) return;
-
-  // API requests - network only, no cache
   if (url.pathname.startsWith("/api/")) return;
 
-  // Model files - cache first
   if (url.pathname.startsWith("/models/")) {
     event.respondWith(
       caches.match(event.request).then((cached) => {
-        const fetched = fetch(event.request).then((res) => {
-          caches.open(STATIC_CACHE).then((cache) => cache.put(event.request, res.clone()));
-          return res;
-        });
-        return cached || fetched;
+        if (cached) return cached;
+        return fetch(event.request).then((res) => cacheThenReturn(event.request, res, STATIC_CACHE));
       })
     );
     return;
   }
 
-  // Next.js static assets - network first (avoid stale chunks after deploy)
   if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icons/")) {
     event.respondWith(
       fetch(event.request)
-        .then((res) => {
-          caches.open(STATIC_CACHE).then((cache) => cache.put(event.request, res.clone()));
-          return res;
-        })
+        .then((res) => cacheThenReturn(event.request, res, STATIC_CACHE))
         .catch(() => caches.match(event.request))
     );
     return;
   }
 
-  // Navigation & other pages - network first, fallback to cache
   event.respondWith(
     fetch(event.request)
-      .then((res) => {
-        caches.open(CACHE).then((cache) => cache.put(event.request, res.clone()));
-        return res;
-      })
+      .then((res) => cacheThenReturn(event.request, res, CACHE))
       .catch(() => caches.match(event.request))
   );
 });
