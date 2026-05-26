@@ -206,6 +206,13 @@ export default function CheckInPage() {
     if (!canvasRef.current || !faceapiRef.current || !user) return;
     const faceapi = faceapiRef.current;
     const canvas = canvasRef.current;
+    // Check if the current user has a registered face
+    if (!descriptors.some(d => d.name === user.name)) {
+      setFaceStatus("No tienes rostro registrado. Pide al administrador que registre tu rostro.");
+      setFaceVerifying(false);
+      setFaceVerified(false);
+      return;
+    }
     setFaceStatus("Verificando rostro...");
     try {
       const result = await Promise.race([
