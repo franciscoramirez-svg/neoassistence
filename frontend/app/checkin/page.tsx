@@ -30,10 +30,6 @@ export default function CheckInPage() {
   const [error, setError] = useState("");
   const [qrMode, setQrMode] = useState(false);
   const [qrScanning, setQrScanning] = useState(false);
-  const [selfieMode, setSelfieMode] = useState(false);
-  const [selfieCaptured, setSelfieCaptured] = useState(false);
-  const [selfieImage, setSelfieImage] = useState<string | null>(null);
-  const [countdown, setCountdown] = useState(0);
   const [justification, setJustification] = useState("");
   const [showJustification, setShowJustification] = useState(false);
   const [pendingType, setPendingType] = useState<"Entrada" | "Salida" | null>(null);
@@ -41,7 +37,6 @@ export default function CheckInPage() {
   const [descriptors, setDescriptors] = useState<{id: string; name: string; descriptor: number[]}[]>([]);
   const [faceVerifying, setFaceVerifying] = useState(false);
   const [checkingIn, setCheckingIn] = useState(false);
-  const [faceVerified, setFaceVerified] = useState(false);
   const [faceStatus, setFaceStatus] = useState("");
   const videoRef = useRef<HTMLVideoElement>(null);
   const selfieVideoRef = useRef<HTMLVideoElement>(null);
@@ -70,14 +65,6 @@ export default function CheckInPage() {
 
   useEffect(() => { if (!user || lat) return; requestLocation(); }, [mounted, user, lat]);
   useEffect(() => { if (qrMode && !qrBranchId) startCamera(); else { stopCamera(); setQrScanning(false); } return () => stopCamera(); }, [qrMode, qrBranchId]);
-  useEffect(() => {
-    if (countdown > 0) {
-      const t = setTimeout(() => setCountdown(countdown - 1), 1000);
-      return () => clearTimeout(t);
-    } else if (countdown === 0 && selfieMode && selfieVideoRef.current) {
-      captureSelfiePhoto();
-    }
-  }, [countdown, selfieMode]);
 
   // Load face-api models and descriptors on mount
   useEffect(() => {
@@ -172,103 +159,6 @@ export default function CheckInPage() {
     animFrameRef.current = requestAnimationFrame(scanQR);
   }
 
-  async function startSelfieCapture(forFaceVerify: boolean = false) {
-    setSelfieMode(true); setSelfieCaptured(false); setSelfieImage(null); setError("");
-    if (forFaceVerify) setFaceVerifying(true);
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
-      if (selfieVideoRef.current) selfieVideoRef.current.srcObject = stream;
-      setCountdown(3);
-    } catch { setError("Error al acceder a la cámara"); setFaceVerifying(false); }
-  }
-
-  async function captureSelfiePhoto() {
-    if (!selfieVideoRef.current || !canvasRef.current) return;
-    const video = selfieVideoRef.current;
-    const canvas = canvasRef.current;
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const ctx = canvas.getContext("2d");
-    if (ctx) {
-      ctx.drawImage(video, 0, 0);
-      const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
-      setSelfieImage(dataUrl);
-      if (video.srcObject) { const tracks = (video.srcObject as MediaStream).getTracks(); tracks.forEach(t => t.stop()); }
-    }
-    setSelfieCaptured(true);
-    setSelfieMode(false);
-
-    // If face verification is active, run it on the captured photo
-    if (faceVerifying) {
-      await verifyFace();
-    }
-  }
-
-  async function verifyFace() {
-    if (!canvasRef.current || !faceapiRef.current || !user) return;
-    const faceapi = faceapiRef.current;
-    const canvas = canvasRef.current;
-    // Check if the current user has a registered face
-    if (!descriptors.some(d => d.name === user.name)) {
-      setFaceStatus("No tienes rostro registrado. Pide al administrador que registre tu rostro.");
-      setFaceVerifying(false);
-      setFaceVerified(false);
-      flowInProgress.current = false;
-      return;
-    }
-    setFaceStatus("Verificando rostro...");
-    try {
-      const result = await Promise.race([
-        faceapi
-          .detectSingleFace(canvas, new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.3 }))
-          .withFaceLandmarks()
-          .withFaceDescriptor(),
-        new Promise<null>((_, reject) => setTimeout(() => reject(new Error("timeout")), 10000)),
-      ]);
-      if (!result) {
-        setFaceStatus("No se detectó rostro. Repite.");
-        setFaceVerifying(false);
-        setFaceVerified(false);
-        flowInProgress.current = false;
-        return;
-      }
-      const desc = Array.from(result.descriptor as Float32Array);
-      // Find best match
-      let bestMatch: {name: string; distance: number} | null = null;
-      let secondBest: {name: string; distance: number} | null = null;
-      for (const emp of descriptors) {
-        const dist = euclideanDistance(desc, emp.descriptor);
-        if (!bestMatch || dist < bestMatch.distance) {
-          secondBest = bestMatch;
-          bestMatch = { name: emp.name, distance: dist };
-        } else if (!secondBest || dist < secondBest.distance) {
-          secondBest = { name: emp.name, distance: dist };
-        }
-      }
-      if (bestMatch && bestMatch.distance < 0.45 && (!secondBest || bestMatch.distance / secondBest.distance < 0.8)) {
-        // Face matches someone — check it's the logged-in user
-        if (bestMatch.name === user.name) {
-          setFaceStatus("Rostro verificado ✓");
-          setFaceVerified(true);
-          setFaceVerifying(false);
-          flowInProgress.current = false;
-          return;
-        } else {
-          setFaceStatus(`Rostro no coincide (${bestMatch.name}). Repite.`);
-        }
-      } else {
-        setFaceStatus("Rostro no reconocido. Repite.");
-      }
-    } catch {
-      setFaceStatus("Error al verificar (tiempo agotado). Repite o cierra e intenta de nuevo.");
-    }
-    setFaceVerifying(false);
-    setFaceVerified(false);
-    flowInProgress.current = false;
-  }
-
-  function retakeSelfie() { flowInProgress.current = false; setSelfieCaptured(false); setSelfieImage(null); setFaceVerified(false); setFaceVerifying(false); startSelfieCapture(); }
-
   function startCheckInFlow(type: "Entrada" | "Salida") {
     if (flowInProgress.current) return;
     flowInProgress.current = true;
@@ -277,17 +167,69 @@ export default function CheckInPage() {
     if (!lat || !lon) { flowInProgress.current = false; setError("Necesitas ubicación válida"); return; }
     setPendingType(type);
 
-    // Stop QR camera before starting selfie to avoid camera conflicts
-    stopCamera();
-
-    // If the user has no registered face, skip verification entirely
     const userHasFace = descriptors.some(d => d.name === user?.name);
-    if (!faceVerified && modelsLoaded && descriptors.length > 0 && userHasFace) {
-      startSelfieCapture(true);
-      return;
+    if (modelsLoaded && descriptors.length > 0 && userHasFace) {
+      verifyFaceThenCheckIn(type);
+    } else {
+      handleCheckIn(type);
     }
-    // If models not loaded, no descriptors, or user has no registered face, skip face check
-    handleCheckIn(type);
+  }
+
+  async function verifyFaceThenCheckIn(type: "Entrada" | "Salida") {
+    stopCamera();
+    setFaceVerifying(true);
+    setFaceStatus("Iniciando cámara...");
+
+    let stream: MediaStream | null = null;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+      if (selfieVideoRef.current) selfieVideoRef.current.srcObject = stream;
+      await new Promise(r => setTimeout(r, 500));
+
+      if (!faceapiRef.current || !canvasRef.current || !selfieVideoRef.current) throw new Error("refs not ready");
+      const faceapi = faceapiRef.current;
+      const canvas = canvasRef.current;
+      canvas.width = selfieVideoRef.current.videoWidth || 640;
+      canvas.height = selfieVideoRef.current.videoHeight || 480;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("no canvas ctx");
+      ctx.drawImage(selfieVideoRef.current, 0, 0);
+
+      const result = await Promise.race([
+        faceapi.detectSingleFace(canvas, new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.3 }))
+          .withFaceLandmarks()
+          .withFaceDescriptor(),
+        new Promise<null>((_, reject) => setTimeout(() => reject(new Error("timeout")), 10000)),
+      ]);
+
+      if (!result) {
+        setFaceStatus("No se detectó rostro.");
+        return;
+      }
+
+      const desc = Array.from(result.descriptor as Float32Array);
+      const emp = descriptors.find(d => d.name === user?.name);
+      if (!emp) {
+        setFaceStatus("No tienes rostro registrado. Pide al administrador que registre tu rostro.");
+        return;
+      }
+
+      const dist = euclideanDistance(desc, emp.descriptor);
+      if (dist < 0.45) {
+        setFaceStatus("✓ Rostro verificado");
+        await handleCheckIn(type);
+        return;
+      }
+
+      setFaceStatus("Rostro no reconocido. Reintenta.");
+    } catch {
+      setFaceStatus("Error al verificar. Reintenta.");
+    } finally {
+      if (stream) stream.getTracks().forEach(t => t.stop());
+      if (selfieVideoRef.current) selfieVideoRef.current.srcObject = null;
+      setFaceVerifying(false);
+      flowInProgress.current = false;
+    }
   }
 
   async function handleCheckIn(type: "Entrada" | "Salida") {
@@ -305,16 +247,12 @@ export default function CheckInPage() {
           lat, lon,
           branch_id: qrBranchId || undefined,
           justification: justification || null,
-          source: qrBranchId ? "qr" : (selfieCaptured ? "selfie" : "web"),
-          selfie_image: selfieImage || null,
+          source: qrBranchId ? "qr" : "web",
         }),
       });
       setMessage(res.message);
       setJustification("");
       setShowJustification(false);
-      setSelfieCaptured(false);
-      setSelfieImage(null);
-      setFaceVerified(false);
       setFaceStatus("");
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : "Error";
@@ -340,8 +278,6 @@ export default function CheckInPage() {
         <h1 style={{margin:"8px 0"}}>Registro de asistencia</h1>
         <p style={{color:"#9bb4ca"}}>Bienvenido, <strong>{user.name}</strong></p>
         {qrBranchName && <p style={{color:"#5ef2ff",marginTop:8}}>📍 Sucursal: {qrBranchName}</p>}
-        {faceVerified && <p style={{color:"#9cffb5",marginTop:4,fontSize:12}}>✓ Rostro verificado</p>}
-        {faceStatus && !faceVerified && <p style={{color:"#ffcc5e",marginTop:4,fontSize:12}}>{faceStatus}</p>}
       </div>
 
       <section style={{display:"flex",gap:12,marginBottom:16}}>
@@ -356,28 +292,10 @@ export default function CheckInPage() {
           {!qrMode && <button onClick={requestLocation} style={{marginTop:8,padding:"8px 12px",borderRadius:8,border:"1px solid rgba(94,242,255,0.18)",background:"rgba(10,21,38,0.8)",color:"#9bb4ca",cursor:"pointer"}}>Actualizar ubicación</button>}
         </div>
 
-        {selfieMode && (
+        {faceVerifying && (
           <div style={{marginBottom:16,textAlign:"center",position:"relative",maxWidth:320,marginLeft:"auto",marginRight:"auto"}}>
             <video ref={selfieVideoRef} autoPlay playsInline muted style={{width:"100%",maxWidth:320,aspectRatio:"1/1",borderRadius:"50%",border:"3px solid #5ef2ff",objectFit:"cover"}} />
-            {countdown > 0 && <div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",fontSize:64,fontWeight:"bold",color:"#5ef2ff",textShadow:"0 0 20px #5ef2ff"}}>{countdown}</div>}
-            {faceVerifying && countdown === 0 && <p style={{color:"#5ef2ff",textAlign:"center",marginTop:4,fontSize:11}}>Verificando rostro...</p>}
-          </div>
-        )}
-
-        {selfieCaptured && selfieImage && (
-          <div style={{marginBottom:16,textAlign:"center"}}>
-            <img src={selfieImage} alt="selfie" style={{width:"100%",maxWidth:320,aspectRatio:"1/1",borderRadius:"50%",border:`3px solid ${faceVerified?"#9cffb5":"#5ef2ff"}`,objectFit:"cover",marginBottom:8}} />
-            {faceVerified ? (
-              <p style={{color:"#9cffb5",fontSize:13,margin:0}}>✓ Rostro verificado</p>
-            ) : (
-              <div>
-                <p style={{color:faceStatus?"#ffcc5e":"#9bb4ca",fontSize:12,marginBottom:8}}>{faceStatus || "Verificando..."}</p>
-                <div style={{display:"flex",gap:8,justifyContent:"center"}}>
-                  <button onClick={retakeSelfie} style={{padding:"8px 16px",borderRadius:8,border:"1px solid rgba(94,242,255,0.3)",background:"rgba(10,21,38,0.8)",color:"#5ef2ff",fontSize:12}}>📷 Repetir</button>
-                  <button onClick={() => { setFaceVerifying(false); setFaceVerified(false); setSelfieCaptured(false); setSelfieImage(null); handleCheckIn(pendingType || "Entrada"); }} style={{padding:"8px 16px",borderRadius:8,border:"1px solid rgba(255,140,158,0.3)",background:"rgba(255,140,158,0.1)",color:"#ff8c9e",fontSize:12}}>Saltar verificación</button>
-                </div>
-              </div>
-            )}
+            <p style={{color:faceStatus?"#ffcc5e":"#5ef2ff",textAlign:"center",marginTop:4,fontSize:12}}>{faceStatus || "Verificando..."}</p>
           </div>
         )}
 
@@ -409,10 +327,10 @@ export default function CheckInPage() {
           </div>
         )}
 
-        <div style={{display:"flex",gap:16}}>
-          <button onClick={()=>startCheckInFlow("Entrada")} disabled={!lat||!lon||faceVerifying||selfieMode||checkingIn} style={{flex:1,padding:18,borderRadius:18,border:"1px solid rgba(94,242,255,0.28)",background:"linear-gradient(135deg, rgba(94,242,255,0.14), rgba(156,255,181,0.08))",color:"white",cursor:lat&&lon?"pointer":"not-allowed",opacity:lat&&lon?1:0.5}}>📥 Entrada</button>
-          <button onClick={()=>startCheckInFlow("Salida")} disabled={!lat||!lon||faceVerifying||selfieMode||checkingIn} style={{flex:1,padding:18,borderRadius:18,border:"1px solid rgba(94,242,255,0.18)",background:"rgba(10,21,38,0.8)",color:"white",cursor:lat&&lon?"pointer":"not-allowed",opacity:lat&&lon?1:0.5}}>📤 Salida</button>
-        </div>
+        {!showJustification && <div style={{display:"flex",gap:16}}>
+          <button onClick={()=>startCheckInFlow("Entrada")} disabled={!lat||!lon||faceVerifying||checkingIn} style={{flex:1,padding:18,borderRadius:18,border:"1px solid rgba(94,242,255,0.28)",background:"linear-gradient(135deg, rgba(94,242,255,0.14), rgba(156,255,181,0.08))",color:"white",cursor:lat&&lon?"pointer":"not-allowed",opacity:lat&&lon?1:0.5}}>📥 Entrada</button>
+          <button onClick={()=>startCheckInFlow("Salida")} disabled={!lat||!lon||faceVerifying||checkingIn} style={{flex:1,padding:18,borderRadius:18,border:"1px solid rgba(94,242,255,0.18)",background:"rgba(10,21,38,0.8)",color:"white",cursor:lat&&lon?"pointer":"not-allowed",opacity:lat&&lon?1:0.5}}>📤 Salida</button>
+        </div>}
         {message ? <p style={{color:"#9cffb5",marginTop:16}}>{message}</p> : null}
         {error && !showJustification ? <p style={{color:"#ff8c9e",marginTop:16}}>{error}</p> : null}
       </section>
