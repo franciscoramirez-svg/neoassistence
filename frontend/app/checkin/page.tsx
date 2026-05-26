@@ -366,9 +366,10 @@ export default function CheckInPage() {
                 </div>
               </div>
             )}
-            <canvas ref={canvasRef} style={{display:"none"}} />
           </div>
         )}
+
+        <canvas ref={canvasRef} style={{display:"none"}} />
 
         {qrMode && !qrBranchId && (
           <div style={{marginBottom:16,textAlign:"center"}}>
