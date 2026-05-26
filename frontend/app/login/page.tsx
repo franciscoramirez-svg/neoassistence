@@ -2,25 +2,29 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-
 import { apiRequest } from "../../lib/api";
 
 
 export default function LoginPage() {
   const router = useRouter();
   const [name, setName] = useState("");
+  const [employeeNumber, setEmployeeNumber] = useState("");
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loginMode, setLoginMode] = useState<"name" | "number">("name");
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError("");
     setLoading(true);
     try {
+      const body = loginMode === "number"
+        ? { name: "", pin, employee_number: employeeNumber }
+        : { name, pin, employee_number: null };
       const response = await apiRequest<{ ok: boolean; user: { role: string; name: string } }>("/auth/login", {
         method: "POST",
-        body: JSON.stringify({ name: name, pin }),
+        body: JSON.stringify(body),
       });
       if (typeof window !== "undefined") {
         localStorage.setItem("neoassistence_user", JSON.stringify(response.user));
@@ -55,15 +59,24 @@ export default function LoginPage() {
         style={{ maxWidth: 520, margin: "0 auto", padding: 24 }}
       >
         <h2 style={{ marginTop: 0 }}>Acceso seguro</h2>
-        <p style={{ color: "#9bb4ca" }}>Inicia sesión con tu nombre y PIN.</p>
+        <p style={{ color: "#9bb4ca" }}>Inicia sesión con tu número de empleado o nombre y PIN.</p>
 
-        <label style={{ display: "block", marginBottom: 8 }}>Nombre</label>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Ejemplo: Juan Perez"
-          style={{ width: "100%", padding: 14, borderRadius: 16, border: "1px solid rgba(94,242,255,0.18)", marginBottom: 16, background: "rgba(10,21,38,0.8)", color: "white" }}
-        />
+        <div style={{display:"flex",gap:8,marginBottom:16}}>
+          <button type="button" onClick={()=>setLoginMode("number")} style={{flex:1,padding:"8px",borderRadius:8,border:"1px solid "+(loginMode==="number"?"rgba(94,242,255,0.4)":"rgba(94,242,255,0.18)"),background:loginMode==="number"?"rgba(94,242,255,0.1)":"transparent",color:loginMode==="number"?"#5ef2ff":"#9bb4ca",cursor:"pointer",fontSize:12}}>N° Empleado</button>
+          <button type="button" onClick={()=>setLoginMode("name")} style={{flex:1,padding:"8px",borderRadius:8,border:"1px solid "+(loginMode==="name"?"rgba(94,242,255,0.4)":"rgba(94,242,255,0.18)"),background:loginMode==="name"?"rgba(94,242,255,0.1)":"transparent",color:loginMode==="name"?"#5ef2ff":"#9bb4ca",cursor:"pointer",fontSize:12}}>Nombre</button>
+        </div>
+
+        {loginMode === "name" ? (
+          <>
+            <label style={{display:"block",marginBottom:8}}>Nombre</label>
+            <input value={name} onChange={e=>setName(e.target.value)} placeholder="Ejemplo: Juan Perez" style={{width:"100%",padding:14,borderRadius:16,border:"1px solid rgba(94,242,255,0.18)",marginBottom:16,background:"rgba(10,21,38,0.8)",color:"white"}} />
+          </>
+        ) : (
+          <>
+            <label style={{display:"block",marginBottom:8}}>Número de empleado</label>
+            <input value={employeeNumber} onChange={e=>setEmployeeNumber(e.target.value)} placeholder="Ej: EMP-001" style={{width:"100%",padding:14,borderRadius:16,border:"1px solid rgba(94,242,255,0.18)",marginBottom:16,background:"rgba(10,21,38,0.8)",color:"white"}} />
+          </>
+        )}
 
         <label style={{ display: "block", marginBottom: 8 }}>PIN</label>
         <input
