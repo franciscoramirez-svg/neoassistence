@@ -345,8 +345,8 @@ export default function CheckInPage() {
         </div>
 
         {selfieMode && (
-          <div style={{marginBottom:16,textAlign:"center",position:"relative",height:280}}>
-            <video ref={selfieVideoRef} autoPlay playsInline muted style={{width:280,height:280,borderRadius:"50%",border:"3px solid #5ef2ff",objectFit:"cover"}} />
+          <div style={{marginBottom:16,textAlign:"center",position:"relative",maxWidth:320,marginLeft:"auto",marginRight:"auto"}}>
+            <video ref={selfieVideoRef} autoPlay playsInline muted style={{width:"100%",maxWidth:320,aspectRatio:"1/1",borderRadius:"50%",border:"3px solid #5ef2ff",objectFit:"cover"}} />
             {countdown > 0 && <div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",fontSize:64,fontWeight:"bold",color:"#5ef2ff",textShadow:"0 0 20px #5ef2ff"}}>{countdown}</div>}
             {faceVerifying && countdown === 0 && <p style={{color:"#5ef2ff",textAlign:"center",marginTop:4,fontSize:11}}>Verificando rostro...</p>}
           </div>
@@ -354,7 +354,7 @@ export default function CheckInPage() {
 
         {selfieCaptured && selfieImage && (
           <div style={{marginBottom:16,textAlign:"center"}}>
-            <img src={selfieImage} alt="selfie" style={{width:200,height:200,borderRadius:"50%",border:`3px solid ${faceVerified?"#9cffb5":"#5ef2ff"}`,objectFit:"cover",marginBottom:8}} />
+            <img src={selfieImage} alt="selfie" style={{width:"100%",maxWidth:320,aspectRatio:"1/1",borderRadius:"50%",border:`3px solid ${faceVerified?"#9cffb5":"#5ef2ff"}`,objectFit:"cover",marginBottom:8}} />
             {faceVerified ? (
               <p style={{color:"#9cffb5",fontSize:13,margin:0}}>✓ Rostro verificado</p>
             ) : (
