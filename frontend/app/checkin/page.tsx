@@ -162,7 +162,7 @@ export default function CheckInPage() {
   function startCheckInFlow(type: "Entrada" | "Salida") {
     if (flowInProgress.current) return;
     flowInProgress.current = true;
-    setError(""); setMessage("");
+    setError(""); setMessage(""); setFaceStatus("");
     if (!user?.name) { flowInProgress.current = false; setError("Sesión no válida"); return; }
     if (!lat || !lon) { flowInProgress.current = false; setError("Necesitas ubicación válida"); return; }
     setPendingType(type);
@@ -295,7 +295,16 @@ export default function CheckInPage() {
         {faceVerifying && (
           <div style={{marginBottom:16,textAlign:"center",position:"relative",maxWidth:320,marginLeft:"auto",marginRight:"auto"}}>
             <video ref={selfieVideoRef} autoPlay playsInline muted style={{width:"100%",maxWidth:320,aspectRatio:"1/1",borderRadius:"50%",border:"3px solid #5ef2ff",objectFit:"cover"}} />
-            <p style={{color:faceStatus?"#ffcc5e":"#5ef2ff",textAlign:"center",marginTop:4,fontSize:12}}>{faceStatus || "Verificando..."}</p>
+            <p style={{color:"#5ef2ff",textAlign:"center",marginTop:4,fontSize:12}}>Verificando rostro...</p>
+          </div>
+        )}
+
+        {faceStatus && !faceVerifying && (
+          <div style={{marginBottom:16,textAlign:"center"}}>
+            <p style={{color:faceStatus.includes("✓")?"#9cffb5":"#ffcc5e",fontSize:12}}>{faceStatus}</p>
+            {!faceStatus.includes("✓") && !checkingIn && (
+              <button onClick={() => startCheckInFlow(pendingType || "Entrada")} style={{padding:"8px 16px",borderRadius:8,border:"1px solid rgba(94,242,255,0.3)",background:"rgba(10,21,38,0.8)",color:"#5ef2ff",fontSize:12,marginTop:8}}>📷 Reintentar</button>
+            )}
           </div>
         )}
 
