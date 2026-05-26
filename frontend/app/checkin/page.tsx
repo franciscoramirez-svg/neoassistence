@@ -216,6 +216,7 @@ export default function CheckInPage() {
           const dist = euclideanDistance(desc, emp.descriptor);
           if (dist < 0.45) {
             setFaceStatus("✓ Rostro verificado");
+            console.log("verifyFaceThenCheckIn: face match OK, calling handleCheckIn with type=", type);
             if (stream) stream.getTracks().forEach(t => t.stop());
             if (selfieVideoRef.current) selfieVideoRef.current.srcObject = null;
             setFaceVerifying(false);
@@ -231,8 +232,10 @@ export default function CheckInPage() {
         if (i < 4) await new Promise(r => setTimeout(r, 1000));
       }
 
+      console.log("verifyFaceThenCheckIn: no match after 5 attempts");
       setFaceStatus("No se detectó rostro después de varios intentos.");
-    } catch {
+    } catch (e) {
+      console.log("verifyFaceThenCheckIn: catch block, error =", e);
       setFaceStatus("Error al verificar. Reintenta.");
     } finally {
       if (stream) stream.getTracks().forEach(t => t.stop());
@@ -269,6 +272,7 @@ export default function CheckInPage() {
       setFaceStatus("");
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : "Error";
+      alert("Error al registrar: " + errMsg);
       console.log("handleCheckIn: error =", errMsg);
       if (errMsg.includes("justificación")) setShowJustification(true);
       setError(errMsg);
