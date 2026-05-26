@@ -65,6 +65,7 @@ export default function CheckInPage() {
 
   useEffect(() => { if (!user || lat) return; requestLocation(); }, [mounted, user, lat]);
   useEffect(() => { if (qrMode && !qrBranchId) startCamera(); else { stopCamera(); setQrScanning(false); } return () => stopCamera(); }, [qrMode, qrBranchId]);
+  useEffect(() => { if (showJustification) window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }); }, [showJustification]);
 
   // Load face-api models and descriptors on mount
   useEffect(() => {
@@ -162,7 +163,7 @@ export default function CheckInPage() {
   function startCheckInFlow(type: "Entrada" | "Salida") {
     if (flowInProgress.current) return;
     flowInProgress.current = true;
-    setError(""); setMessage(""); setFaceStatus("");
+    setError(""); setMessage(""); setFaceStatus(""); setShowJustification(false); setJustification("");
     if (!user?.name) { flowInProgress.current = false; setError("Sesión no válida"); return; }
     if (!lat || !lon) { flowInProgress.current = false; setError("Necesitas ubicación válida"); return; }
     setPendingType(type);
@@ -340,6 +341,7 @@ export default function CheckInPage() {
 
         {showJustification && (
           <div style={{marginBottom:16,padding:16,borderRadius:12,background:"rgba(255,140,158,0.1)",border:"1px solid rgba(255,140,158,0.3)"}}>
+            <div style={{background:"#ffcc00",color:"#000",padding:4,borderRadius:4,fontSize:10,marginBottom:8,textAlign:"center"}}>DEBUG: showJustification=true</div>
             <label style={{display:"block",marginBottom:8,color:"#ff8c9e",fontWeight:"bold"}}>⚠️ Justificación requerida</label>
             <textarea value={justification} onChange={e=>setJustification(e.target.value)} placeholder="Explica el motivo..." style={{width:"100%",padding:14,borderRadius:12,border:"1px solid rgba(255,140,158,0.3)",background:"rgba(10,21,38,0.8)",color:"white",minHeight:80,marginBottom:12}} />
             <button onClick={()=>handleCheckIn(pendingType||"Entrada")} disabled={!justification.trim()} style={{width:"100%",padding:14,borderRadius:12,border:"1px solid rgba(255,140,158,0.3)",background:"#ff8c9e",color:"white",cursor:justification.trim()?"pointer":"not-allowed",fontWeight:"bold"}}>✓ Guardar</button>
