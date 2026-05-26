@@ -272,12 +272,13 @@ export default function CheckInPage() {
     // Stop QR camera before starting selfie to avoid camera conflicts
     stopCamera();
 
-    // If face not verified yet, start selfie capture with face verification
-    if (!faceVerified && modelsLoaded && descriptors.length > 0) {
+    // If the user has no registered face, skip verification entirely
+    const userHasFace = descriptors.some(d => d.name === user?.name);
+    if (!faceVerified && modelsLoaded && descriptors.length > 0 && userHasFace) {
       startSelfieCapture(true);
       return;
     }
-    // If models not loaded or no descriptors, allow without face check
+    // If models not loaded, no descriptors, or user has no registered face, skip face check
     handleCheckIn(type);
   }
 
@@ -359,7 +360,10 @@ export default function CheckInPage() {
             ) : (
               <div>
                 <p style={{color:faceStatus?"#ffcc5e":"#9bb4ca",fontSize:12,marginBottom:8}}>{faceStatus || "Verificando..."}</p>
-                <button onClick={retakeSelfie} style={{padding:"8px 16px",borderRadius:8,border:"1px solid rgba(94,242,255,0.3)",background:"rgba(10,21,38,0.8)",color:"#5ef2ff",fontSize:12}}>📷 Repetir</button>
+                <div style={{display:"flex",gap:8,justifyContent:"center"}}>
+                  <button onClick={retakeSelfie} style={{padding:"8px 16px",borderRadius:8,border:"1px solid rgba(94,242,255,0.3)",background:"rgba(10,21,38,0.8)",color:"#5ef2ff",fontSize:12}}>📷 Repetir</button>
+                  <button onClick={() => { setFaceVerifying(false); setFaceVerified(false); setSelfieCaptured(false); setSelfieImage(null); handleCheckIn(pendingType || "Entrada"); }} style={{padding:"8px 16px",borderRadius:8,border:"1px solid rgba(255,140,158,0.3)",background:"rgba(255,140,158,0.1)",color:"#ff8c9e",fontSize:12}}>Saltar verificación</button>
+                </div>
               </div>
             )}
             <canvas ref={canvasRef} style={{display:"none"}} />
