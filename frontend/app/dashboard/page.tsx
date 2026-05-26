@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiRequest } from "@/lib/api";
+import ThemeToggle from "../ThemeToggle";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area, ResponsiveContainer } from "recharts";
 
 type RecordItem = { id: string; empleado: string; tipo: string; estatus: string; fecha_hora: string; sucursal_id: string; };
@@ -183,9 +184,17 @@ export default function DashboardPage() {
 
       <nav style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 0",marginBottom:8}}>
         <img src="/images/logo_modo_oscuro.fw.png" alt="NEOMOTIC" style={{height:32}} />
-        <span style={{color:"#9bb4ca"}}>{user.name}</span>
-        <button onClick={()=>{localStorage.removeItem("neoassistence_user");router.push("/login");}} style={{background:"none",border:"none",color:"#ff8c9e",cursor:"pointer"}}>Cerrar sesión</button>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <ThemeToggle />
+          <span style={{color:"#9bb4ca"}}>{user.name}</span>
+          <button onClick={()=>{localStorage.removeItem("neoassistence_user");router.push("/login");}} style={{background:"none",border:"none",color:"#ff8c9e",cursor:"pointer"}}>Cerrar sesión</button>
+        </div>
       </nav>
+
+      <div className="glass" style={{padding:24,marginBottom:20}}>
+        <h1 style={{margin:0,fontSize:28}}>Dashboard</h1>
+        <p style={{color:"#9bb4ca",marginTop:8}}>Resumen de asistencia en tiempo real</p>
+      </div>
 
       <section className="glass" style={{padding:16,marginBottom:20}}>
         <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
@@ -205,11 +214,6 @@ export default function DashboardPage() {
           <Link href="/admin/nomina" style={{padding:"10px 14px",borderRadius:10,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none",fontSize:12}}>💰 Nómina</Link>
         </div>
       </section>
-
-      <div className="glass" style={{padding:24,marginBottom:24}}>
-        <h1 style={{margin:0,fontSize:28}}>Dashboard</h1>
-        <p style={{color:"#9bb4ca",marginTop:8}}>Resumen de asistencia en tiempo real</p>
-      </div>
 
       <section style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(120px, 1fr))",gap:12,marginBottom:24}}>
         {[
