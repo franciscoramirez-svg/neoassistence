@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { apiRequest } from "@/lib/api";
 import { useToast } from "../ToastProvider";
@@ -56,12 +56,14 @@ export default function KioskPage() {
   const [showFaceReg, setShowFaceReg] = useState(false);
   const [faceRegDetected, setFaceRegDetected] = useState(false);
   const [faceRegSaving, setFaceRegSaving] = useState(false);
+  const [isIdle, setIsIdle] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const faceDescriptorsRef = useRef<{id: string; name: string; pin: string; descriptor: number[]}[]>([]);
   const detectionIntervalRef = useRef<any>(null);
   const faceapiRef = useRef<any>(null);
+  const idleTimerRef = useRef<any>(null);
 
   function playBeep(freq: number = 660, duration: number = 150) {
     try {
@@ -156,9 +158,26 @@ export default function KioskPage() {
     }
   }
 
+  function resetIdleTimer() {
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    idleTimerRef.current = setTimeout(() => {
+      setIsIdle(true);
+      stopDetection();
+    }, 60000);
+  }
+
+  async function wakeFromIdle() {
+    setIsIdle(false);
+    setFaceStatus("Iniciando...");
+    startCamera();
+  }
+
   function startDetection() {
     if (!videoRef.current || !canvasRef.current || !faceapiRef.current) return;
     const faceapi = faceapiRef.current;
+    
+    setIsIdle(false);
+    resetIdleTimer();
     
     detectionIntervalRef.current = setInterval(async () => {
       if (!videoRef.current || (identifiedUser && !showFaceReg) || success || processing) return;
@@ -170,6 +189,7 @@ export default function KioskPage() {
           .withFaceDescriptor();
         
         if (result) {
+          resetIdleTimer();
           if (showFaceReg) {
             setFaceRegDetected(true);
             return;
@@ -204,6 +224,7 @@ export default function KioskPage() {
   }
 
   function stopDetection() {
+    if (idleTimerRef.current) { clearTimeout(idleTimerRef.current); idleTimerRef.current = null; }
     if (detectionIntervalRef.current) {
       clearInterval(detectionIntervalRef.current);
       detectionIntervalRef.current = null;
@@ -355,6 +376,15 @@ export default function KioskPage() {
           <h1 style={{color:"#9cffb5",fontSize:28,marginBottom:8}}>REGISTRADO</h1>
           <p style={{color:"white",fontSize:22}}>{message}</p>
         </div>
+      </main>
+    );
+  }
+
+  if (isIdle) {
+    return (
+      <main onClick={wakeFromIdle} style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100dvh",background:"#0a1526",cursor:"pointer",padding:16}}>
+        <NeonClock />
+        <p style={{color:"#9bb4ca",fontSize:16,marginTop:40,textAlign:"center"}}>Toca la pantalla para activar</p>
       </main>
     );
   }
