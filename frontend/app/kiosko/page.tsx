@@ -385,7 +385,7 @@ export default function KioskPage() {
           </div>
           <h1 style={{color:"#9cffb5",fontSize:28,marginBottom:4,textShadow:"0 0 20px rgba(156,255,181,0.4)"}}>{message.toUpperCase()}</h1>
           <p style={{color:"white",fontSize:18,marginBottom:4,opacity:0.9}}>{successName}</p>
-          <p style={{color:"#5ef2ff",fontSize:11,opacity:0.6}}>NEOMOTIC</p>
+          <img src="/images/logo_modo_oscuro.fw.png" alt="NEOMOTIC" style={{height:24,opacity:0.6,marginTop:8}} />
         </div>
         <style>{`
           @keyframes fadeInUp { from { opacity:0; transform:translateY(30px) } to { opacity:1; transform:translateY(0) } }
@@ -398,6 +398,7 @@ export default function KioskPage() {
   if (isIdle) {
     return (
       <main onClick={wakeFromIdle} style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100dvh",background:"#0a1526",cursor:"pointer",padding:16}}>
+        <img src="/images/logo_modo_oscuro.fw.png" alt="NEOMOTIC" style={{height:48,marginBottom:16}} />
         <NeonClock />
         <p style={{color:"#9bb4ca",fontSize:16,marginTop:40,textAlign:"center"}}>Toca la pantalla para activar</p>
       </main>
@@ -424,8 +425,8 @@ export default function KioskPage() {
 
   return (
     <main className="page-shell" style={{display:"flex",flexDirection:"column",alignItems:"center",minHeight:"100dvh",padding:"8px 8px 16px"}}>
+      <img src="/images/logo_modo_oscuro.fw.png" alt="NEOMOTIC" style={{height:48,marginBottom:12}} />
       <NeonClock />
-      <h1 style={{color:"#d08aff",fontSize:24,marginBottom:8,textShadow:"0 0 20px #d08aff",textAlign:"center"}}>NEOMOTIC</h1>
       <button onClick={handleLogout} style={{position:"fixed",top:8,right:8,padding:"6px 10px",borderRadius:8,border:"1px solid rgba(255,140,158,0.3)",background:"transparent",color:"#ff8c9e",fontSize:11,zIndex:50}}>Salir</button>
       {user?.role === "admin" && <button onClick={()=>router.push("/dashboard")} style={{position:"fixed",top:8,left:8,padding:"6px 10px",borderRadius:8,border:"1px solid rgba(94,242,255,0.3)",background:"transparent",color:"#5ef2ff",fontSize:11,zIndex:50}}>Dashboard</button>}
       {user?.role?.toLowerCase().includes("supervisor") && <button onClick={()=>router.push("/empleado")} style={{position:"fixed",top:8,left:8,padding:"6px 10px",borderRadius:8,border:"1px solid rgba(94,242,255,0.3)",background:"transparent",color:"#5ef2ff",fontSize:11,zIndex:50}}>Mi Perfil</button>}
