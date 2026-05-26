@@ -249,23 +249,27 @@ export default function CheckInPage() {
     if (!lat || !lon) { setCheckingIn(false); setError("Necesitas ubicación válida"); return; }
 
     try {
+      const payload = {
+        employee_name: user.name,
+        movement_type: type,
+        lat, lon,
+        branch_id: qrBranchId || undefined,
+        justification: justification || null,
+        source: qrBranchId ? "qr" : "web",
+      };
+      console.log("handleCheckIn: payload =", JSON.stringify(payload));
       const res = await apiRequest<{ message: string }>("/records", {
         method: "POST",
-        body: JSON.stringify({
-          employee_name: user.name,
-          movement_type: type,
-          lat, lon,
-          branch_id: qrBranchId || undefined,
-          justification: justification || null,
-          source: qrBranchId ? "qr" : "web",
-        }),
+        body: JSON.stringify(payload),
       });
+      console.log("handleCheckIn: response =", res);
       setMessage(res.message);
       setJustification("");
       setShowJustification(false);
       setFaceStatus("");
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : "Error";
+      console.log("handleCheckIn: error =", errMsg);
       if (errMsg.includes("justificación")) setShowJustification(true);
       setError(errMsg);
     } finally {
