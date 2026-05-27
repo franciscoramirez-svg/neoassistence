@@ -18,10 +18,18 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const raw = identifier.trim();
-      const isNeo = /^neo/i.test(raw);
-      const body = isNeo
-        ? { name: "", pin, employee_number: raw.replace(/^neo/i, "").trim() }
-        : { name: raw, pin, employee_number: null };
+      const neoMatch = raw.match(/^neo\s*(\d+)$/i);
+      const digitsMatch = raw.match(/^\d+$/);
+      let employee_number: string | null = null;
+      let name = "";
+      if (neoMatch) {
+        employee_number = neoMatch[1];
+      } else if (digitsMatch) {
+        employee_number = raw;
+      } else {
+        name = raw;
+      }
+      const body = { name, pin, employee_number };
       const response = await apiRequest<{ ok: boolean; user: { role: string; name: string } }>("/auth/login", {
         method: "POST",
         body: JSON.stringify(body),
@@ -60,10 +68,7 @@ export default function LoginPage() {
         <p style={{ color: "#9bb4ca" }}>Ingresa con tu usuario y PIN.</p>
 
         <label style={{display:"block",marginBottom:8}}>Usuario</label>
-        <div style={{display:"flex",alignItems:"center",marginBottom:16,border:"1px solid rgba(94,242,255,0.18)",borderRadius:16,background:"rgba(10,21,38,0.8)",overflow:"hidden"}}>
-          <span style={{padding:"14px 0 14px 14px",color:"#5ef2ff",fontWeight:"bold",fontSize:14,fontFamily:"monospace"}}>NEO</span>
-          <input value={identifier} onChange={e=>setIdentifier(e.target.value)} placeholder="0102" style={{width:"100%",padding:14,border:"none",background:"transparent",color:"white",fontSize:14,outline:"none"}} />
-        </div>
+        <input value={identifier} onChange={e=>setIdentifier(e.target.value)} placeholder="NEO0102 o tu número o tu nombre" style={{width:"100%",padding:14,borderRadius:16,border:"1px solid rgba(94,242,255,0.18)",marginBottom:16,background:"rgba(10,21,38,0.8)",color:"white",fontSize:14}} />
 
         <label style={{ display: "block", marginBottom: 8 }}>PIN</label>
         <input
