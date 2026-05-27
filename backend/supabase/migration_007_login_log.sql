@@ -9,10 +9,12 @@ CREATE TABLE IF NOT EXISTS login_log (
 
 ALTER TABLE login_log ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Admins can read login_log"
-  ON login_log FOR SELECT
-  USING (auth.role() = 'authenticated');
-
-CREATE POLICY "Service can insert login_log"
+-- Allow inserts from any source (backend uses anon key)
+CREATE POLICY "Anyone can insert"
   ON login_log FOR INSERT
   WITH CHECK (true);
+
+-- Allow reads from any source
+CREATE POLICY "Anyone can read"
+  ON login_log FOR SELECT
+  USING (true);
