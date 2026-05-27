@@ -283,6 +283,7 @@ export default function EmpleadosAdminPage() {
                 <th style={{textAlign:"left",padding:"12px 8px",color:"#9bb4ca"}}>Nombre</th>
                 <th style={{textAlign:"left",padding:"12px 8px",color:"#9bb4ca"}}>No.</th>
                 <th style={{textAlign:"left",padding:"12px 8px",color:"#9bb4ca"}}>Rol</th>
+                <th style={{textAlign:"center",padding:"12px 8px",color:"#9bb4ca"}}>PIN</th>
                 <th style={{textAlign:"center",padding:"12px 8px",color:"#9bb4ca"}}>Horario</th>
                 <th style={{textAlign:"center",padding:"12px 8px",color:"#9bb4ca"}}>Tol.</th>
                 <th style={{textAlign:"center",padding:"12px 8px",color:"#9bb4ca"}}>Estado</th>
@@ -295,6 +296,7 @@ export default function EmpleadosAdminPage() {
                   <td style={{padding:"12px 8px",color:"white"}}>{emp.nombre}</td>
                   <td style={{padding:"12px 8px",color:"#9bb4ca",fontFamily:"monospace",fontSize:13}}>{emp.numero_empleado || "—"}</td>
                   <td style={{padding:"12px 8px",color:"#9bb4ca"}}>{emp.rol || "employee"}</td>
+                  <td style={{padding:"12px 8px",textAlign:"center",color:"#ffcc5e",fontFamily:"monospace",fontSize:13,fontWeight:"bold"}}>{emp.pin || "—"}</td>
                   <td style={{padding:"12px 8px",textAlign:"center",color:"#5ef2ff",fontSize:12}}>{(emp.hora_entrada||"??").slice(0,5)}-{(emp.hora_salida||"??").slice(0,5)}</td>
                   <td style={{padding:"12px 8px",textAlign:"center",color:"#9bb4ca",fontSize:12}}>{emp.tolerancia_minutos ?? 15}min</td>
                   <td style={{padding:"12px 8px",textAlign:"center"}}>
@@ -332,7 +334,7 @@ export default function EmpleadosAdminPage() {
 
             <div style={{marginBottom:10}}>
               <label style={{display:"block",marginBottom:4,color:"#9bb4ca",fontSize:12}}>PIN</label>
-              <input type="password" value={formData.pin} onChange={e => setFormData({...formData, pin: e.target.value})} style={{width:"100%",padding:10,borderRadius:8,border:"1px solid rgba(94,242,255,0.2)",background:"rgba(10,21,38,0.8)",color:"white",fontSize:14}} />
+              <input value={formData.pin} onChange={e => setFormData({...formData, pin: e.target.value})} style={{width:"100%",padding:10,borderRadius:8,border:"1px solid rgba(94,242,255,0.2)",background:"rgba(10,21,38,0.8)",color:"white",fontSize:14,fontFamily:"monospace"}} />
             </div>
 
             <div style={{marginBottom:10}}>

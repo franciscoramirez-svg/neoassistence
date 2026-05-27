@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from app.schemas.auth import LoginRequest, LoginResponse
-from app.services.employees import get_active_employee_by_name
+from app.services.employees import get_active_employee_by_name, get_active_employee_by_number
 
 router = APIRouter(tags=["auth"])
 
