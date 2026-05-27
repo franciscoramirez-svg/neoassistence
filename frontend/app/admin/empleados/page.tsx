@@ -67,6 +67,28 @@ export default function EmpleadosAdminPage() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const faceIntervalRef = useRef<any>(null);
+
+  function generatePin() {
+    const pin = String(1000 + Math.floor(Math.random() * 9000));
+    setFormData({ ...formData, pin });
+  }
+
+  async function regenerateAllPins() {
+    if (!confirm("¿Generar nuevo PIN para todos los empleados que tengan '1234'?")) return;
+    for (const emp of employees) {
+      if (emp.pin === "1234" || !emp.pin) {
+        const newPin = String(1000 + Math.floor(Math.random() * 9000));
+        try {
+          await apiRequest(`/employees/${emp.id}`, {
+            method: "PUT",
+            body: JSON.stringify({ pin: newPin }),
+          });
+        } catch {}
+      }
+    }
+    loadEmployees();
+    toast("PINs generados para empleados con 1234", "success");
+  }
   
   // Fix for checkbox - ensure boolean
   const horasExtraChecked = !!formData.horas_extra;
@@ -263,13 +285,16 @@ export default function EmpleadosAdminPage() {
 
       <Link href="/dashboard" style={{color:"#5ef2ff",textDecoration:"none",display:"block",marginBottom:16}}>← Volver al dashboard</Link>
 
-      <div className="glass" style={{padding:24,marginBottom:24,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <div>
-          <h1 style={{margin:0,fontSize:28}}>👥 Gestión de Empleados</h1>
-          <p style={{color:"#9bb4ca",marginTop:8}}>{employees.length} empleados registrados</p>
+        <div className="glass" style={{padding:24,marginBottom:24,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
+          <div>
+            <h1 style={{margin:0,fontSize:28}}>👥 Gestión de Empleados</h1>
+            <p style={{color:"#9bb4ca",marginTop:8}}>{employees.length} empleados registrados</p>
+          </div>
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={regenerateAllPins} style={{padding:"8px 14px",borderRadius:10,border:"1px solid rgba(255,204,94,0.3)",background:"rgba(255,204,94,0.1)",color:"#ffcc5e",fontSize:12,cursor:"pointer"}}>🔑 Generar PINs</button>
+            <button onClick={newEmployee} style={{padding:"10px 18px",borderRadius:12,border:"1px solid rgba(94,242,255,0.3)",background:"rgba(94,242,255,0.2)",color:"#5ef2ff",fontSize:14,cursor:"pointer"}}>+ Nuevo</button>
+          </div>
         </div>
-        <button onClick={newEmployee} style={{padding:"12px 20px",borderRadius:12,border:"1px solid rgba(94,242,255,0.3)",background:"rgba(94,242,255,0.2)",color:"#5ef2ff",fontSize:14}}>+ Nuevo</button>
-      </div>
 
       {loading ? (
         <div className="glass" style={{padding:40,textAlign:"center"}}><div className="skeleton" style={{width:"100%",height:200,borderRadius:24}} /></div>
@@ -334,7 +359,10 @@ export default function EmpleadosAdminPage() {
 
             <div style={{marginBottom:10}}>
               <label style={{display:"block",marginBottom:4,color:"#9bb4ca",fontSize:12}}>PIN</label>
-              <input value={formData.pin} onChange={e => setFormData({...formData, pin: e.target.value})} style={{width:"100%",padding:10,borderRadius:8,border:"1px solid rgba(94,242,255,0.2)",background:"rgba(10,21,38,0.8)",color:"white",fontSize:14,fontFamily:"monospace"}} />
+              <div style={{display:"flex",gap:8}}>
+                <input value={formData.pin} onChange={e => setFormData({...formData, pin: e.target.value})} style={{flex:1,padding:10,borderRadius:8,border:"1px solid rgba(94,242,255,0.2)",background:"rgba(10,21,38,0.8)",color:"white",fontSize:14,fontFamily:"monospace"}} />
+                <button type="button" onClick={generatePin} style={{padding:"6px 12px",borderRadius:8,border:"1px solid rgba(255,204,94,0.3)",background:"rgba(255,204,94,0.1)",color:"#ffcc5e",fontSize:12,whiteSpace:"nowrap",cursor:"pointer"}}>Generar</button>
+              </div>
             </div>
 
             <div style={{marginBottom:10}}>
