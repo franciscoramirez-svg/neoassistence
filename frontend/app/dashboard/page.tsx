@@ -211,6 +211,7 @@ export default function DashboardPage() {
           <Link href="/calendario" style={{padding:"10px 14px",borderRadius:10,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none",fontSize:12}}>📅 Calendario</Link>
           <Link href="/historial" style={{padding:"10px 14px",borderRadius:10,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none",fontSize:12}}>📋 Mi historial</Link>
           <Link href="/admin/registros" style={{padding:"10px 14px",borderRadius:10,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none",fontSize:12}}>✏️ Editar registros</Link>
+          <Link href="/admin/login-logs" style={{padding:"10px 14px",borderRadius:10,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none",fontSize:12}}>🔐 Accesos</Link>
           <Link href="/admin/nomina" style={{padding:"10px 14px",borderRadius:10,background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",color:"white",textDecoration:"none",fontSize:12}}>💰 Nómina</Link>
         </div>
       </section>
