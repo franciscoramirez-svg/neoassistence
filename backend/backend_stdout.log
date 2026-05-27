@@ -1,0 +1,30 @@
+[CRON] Auto-close: 0 cerrados, 0 errores
+[CRON] Auto-close: 0 cerrados, 0 errores
+[CRON] Auto-close: 0 cerrados, 0 errores
+[CRON] Auto-close: 0 cerrados, 0 errores
+[CRON] Error: [Errno 11001] getaddrinfo failed
+[CRON] Error: [Errno 11001] getaddrinfo failed
+[CRON] Auto-close: 0 cerrados, 0 errores
+[CRON] Auto-close: 0 cerrados, 0 errores
+[CRON] Auto-close: 0 cerrados, 0 errores
+[CRON] Auto-close: 0 cerrados, 0 errores
+[CRON] Auto-close: 0 cerrados, 0 errores
+[CRON] Auto-close: 0 cerrados, 0 errores
+[CRON] Error: [Errno 11001] getaddrinfo failed
+[CRON] Error: [Errno 11001] getaddrinfo failed
+INFO:     127.0.0.1:50349 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50352 - "GET /uploads/yts/2026-03.jpg HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50355 - "GET /uploads/yts/2026-04.jpg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61676 - "GET /api/health HTTP/1.1" 200 OK
+[CRON] Auto-close: 0 cerrados, 0 errores
+[CRON] Auto-close: 0 cerrados, 0 errores
+[CRON] Auto-close: 0 cerrados, 0 errores
+INFO:     127.0.0.1:60006 - "POST /api/yts/upload HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:55233 - "GET /api/health HTTP/1.1" 200 OK
+[CRON] Auto-close: 0 cerrados, 0 errores
+INFO:     127.0.0.1:52093 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:61616 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58068 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:62841 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49672 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54172 - "GET /api/health HTTP/1.1" 200 OK

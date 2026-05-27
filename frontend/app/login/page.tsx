@@ -19,13 +19,10 @@ export default function LoginPage() {
     try {
       const raw = identifier.trim();
       const neoMatch = raw.match(/^neo\s*(\d+)$/i);
-      const digitsMatch = raw.match(/^\d+$/);
       let employee_number: string | null = null;
       let name = "";
       if (neoMatch) {
         employee_number = neoMatch[1];
-      } else if (digitsMatch) {
-        employee_number = raw;
       } else {
         name = raw;
       }
@@ -68,7 +65,7 @@ export default function LoginPage() {
         <p style={{ color: "#9bb4ca" }}>Ingresa con tu usuario y PIN.</p>
 
         <label style={{display:"block",marginBottom:8}}>Usuario</label>
-        <input value={identifier} onChange={e=>setIdentifier(e.target.value)} placeholder="NEO0102 o tu número o tu nombre" style={{width:"100%",padding:14,borderRadius:16,border:"1px solid rgba(94,242,255,0.18)",marginBottom:16,background:"rgba(10,21,38,0.8)",color:"white",fontSize:14}} />
+        <input value={identifier} onChange={e=>setIdentifier(e.target.value)} placeholder="NEO0102 o tu nombre" style={{width:"100%",padding:14,borderRadius:16,border:"1px solid rgba(94,242,255,0.18)",marginBottom:16,background:"rgba(10,21,38,0.8)",color:"white",fontSize:14}} />
 
         <label style={{ display: "block", marginBottom: 8 }}>PIN</label>
         <input
