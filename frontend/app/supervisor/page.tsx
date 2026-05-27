@@ -84,9 +84,7 @@ export default function SupervisorPage() {
           </div>
 
           <div style={{width:"100%",display:"flex",flexDirection:"column",gap:10}}>
-            <button onClick={()=>router.push("/kiosko")} style={{width:"100%",padding:"16px",borderRadius:14,border:"1px solid rgba(94,242,255,0.3)",background:"linear-gradient(135deg, rgba(94,242,255,0.12), rgba(156,255,181,0.06))",color:"white",fontSize:15,fontWeight:"bold",cursor:"pointer"}}>
-              Kiosko
-            </button>
+
             <button onClick={()=>router.push("/empleado")} style={{width:"100%",padding:"16px",borderRadius:14,border:"1px solid rgba(208,138,255,0.3)",background:"rgba(208,138,255,0.08)",color:"white",fontSize:15,fontWeight:"bold",cursor:"pointer"}}>
               Ver Credenciales
             </button>

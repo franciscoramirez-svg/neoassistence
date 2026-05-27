@@ -6,7 +6,8 @@ from app.services.supabase_client import get_supabase
 
 router = APIRouter(tags=["yts"])
 
-YTS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "uploads", "yts")
+_BASE = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+YTS_DIR = os.path.join(_BASE, "uploads", "yts")
 os.makedirs(YTS_DIR, exist_ok=True)
 
 def parse_mes(mes: str) -> str:
@@ -31,9 +32,15 @@ async def upload_yts(file: UploadFile = File(...), mes: str = Form(...)):
     filename = f"{mes}{ext}"
     filepath = os.path.join(YTS_DIR, filename)
     
-    content = await file.read()
-    with open(filepath, "wb") as f:
-        f.write(content)
+    try:
+        content = await file.read()
+        with open(filepath, "wb") as f:
+            f.write(content)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al guardar archivo: {str(e)}")
+    
+    if not os.path.isfile(filepath):
+        raise HTTPException(status_code=500, detail=f"El archivo no se guardó en {filepath}")
     
     archivo_url = f"/uploads/yts/{filename}"
     supabase = get_supabase()

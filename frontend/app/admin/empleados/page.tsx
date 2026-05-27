@@ -336,12 +336,8 @@ export default function EmpleadosAdminPage() {
             </div>
 
             <div style={{marginBottom:10}}>
-              <label style={{display:"block",marginBottom:4,color:"#9bb4ca",fontSize:12}}>Rol</label>
-              <select value={formData.rol} onChange={e => setFormData({...formData, rol: e.target.value})} style={{width:"100%",padding:10,borderRadius:8,border:"1px solid rgba(94,242,255,0.2)",background:"rgba(10,21,38,0.8)",color:"white",fontSize:14}}>
-                <option value="employee">Empleado</option>
-                <option value="supervisor">Supervisor</option>
-                <option value="admin">Admin</option>
-              </select>
+              <label style={{display:"block",marginBottom:4,color:"#9bb4ca",fontSize:12}}>Rol / Puesto</label>
+              <input value={formData.rol} onChange={e => setFormData({...formData, rol: e.target.value})} placeholder="Ej: Tecnico Electronico, Andamiero, Supervisor..." style={{width:"100%",padding:10,borderRadius:8,border:"1px solid rgba(94,242,255,0.2)",background:"rgba(10,21,38,0.8)",color:"white",fontSize:14}} />
             </div>
 
             <div style={{marginBottom:10}}>

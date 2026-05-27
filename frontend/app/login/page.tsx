@@ -36,10 +36,8 @@ export default function LoginPage() {
         router.push("/kiosko");
       } else if (role.toLowerCase().includes("supervisor")) {
         router.push("/supervisor");
-      } else if (role === "employee" || role === "tecnico" || role === "auxiliar") {
-        router.push("/empleado");
       } else {
-        router.push("/kiosko");
+        router.push("/empleado");
       }
     } catch (err) {
       setError("Credenciales inválidas. Verifica tu nombre y PIN.");

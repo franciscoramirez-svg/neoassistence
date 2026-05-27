@@ -5,6 +5,47 @@ import { useRouter } from "next/navigation";
 import { apiRequest } from "@/lib/api";
 import { useToast } from "../ToastProvider";
 
+function playChime(type: "Entrada" | "Salida") {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const master = ctx.createGain();
+    master.connect(ctx.destination);
+    master.gain.value = 0.15;
+
+    const now = ctx.currentTime;
+
+    if (type === "Entrada") {
+      [523.25, 659.25, 783.99].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = freq;
+        osc.connect(g);
+        g.connect(master);
+        const t = now + i * 0.12;
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(1, t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+        osc.start(t);
+        osc.stop(t + 0.35);
+      });
+    } else {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = "sine";
+      osc.connect(g);
+      g.connect(master);
+      osc.frequency.setValueAtTime(587.33, now);
+      osc.frequency.linearRampToValueAtTime(440, now + 0.3);
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(1, now + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+      osc.start(now);
+      osc.stop(now + 0.6);
+    }
+  } catch {}
+}
+
 function getStoredUser() {
   if (typeof window === "undefined") return null;
   const raw = localStorage.getItem("neoassistence_user");
@@ -70,11 +111,21 @@ export default function KioskPage() {
   function playBeep(freq: number = 660, duration: number = 150) {
     try {
       const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const master = ctx.createGain();
+      master.connect(ctx.destination);
+      master.gain.value = 0.12;
       const osc = ctx.createOscillator();
-      osc.connect(ctx.destination);
+      const g = ctx.createGain();
+      osc.type = "sine";
       osc.frequency.value = freq;
-      osc.start();
-      osc.stop(ctx.currentTime + duration / 1000);
+      osc.connect(g);
+      g.connect(master);
+      const now = ctx.currentTime;
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(1, now + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.001, now + duration / 1000);
+      osc.start(now);
+      osc.stop(now + duration / 1000 + 0.05);
     } catch {}
   }
 
@@ -321,14 +372,7 @@ export default function KioskPage() {
     setSuccess(false);
     setMessage("");
 
-    try {
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      osc.connect(audioCtx.destination);
-      osc.frequency.value = type === "Entrada" ? 880 : 440;
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.15);
-    } catch {}
+    playChime(type);
 
     try {
       await apiRequest<{message: string}>("/records", {
