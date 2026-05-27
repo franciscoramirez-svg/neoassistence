@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://192.168.1.85:8000/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://192.168.1.85:8080/api";
 
 
 export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
