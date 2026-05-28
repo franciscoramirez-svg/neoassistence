@@ -47,6 +47,7 @@ def get_daily_report(date: str = None) -> dict:
         return {"fecha": date, "total": 0, "entradas": 0, "salidas": 0, "retardos": 0, "a_tiempo": 0, "por_empleado": {}, "por_sucursal": {}}
     
     emp_map = {e["id"]: e["nombre"] for e in (empleados.data or [])}
+    emp_name_to_id = {e["nombre"]: e["id"] for e in (empleados.data or [])}
     suc_map = {s["id"]: s["nombre"] for s in (sucursales.data or [])}
     
     items = records.data or []
@@ -58,8 +59,11 @@ def get_daily_report(date: str = None) -> dict:
     
     por_empleado = {}
     for r in items:
-        emp_id = r.get("empleado_id", "")
-        nombre = emp_map.get(emp_id, "Desconocido")
+        emp_val = r.get("empleado", "") or ""
+        if emp_val in emp_name_to_id:
+            nombre = emp_val
+        else:
+            nombre = emp_map.get(emp_val, emp_val or "Desconocido")
         if nombre not in por_empleado:
             por_empleado[nombre] = {"entradas": 0, "salidas": 0, "retardos": 0}
         if r.get("tipo") == "Entrada":
@@ -71,8 +75,8 @@ def get_daily_report(date: str = None) -> dict:
     
     por_sucursal = {}
     for r in items:
-        suc_id = r.get("sucursal_id", "")
-        nombre = suc_map.get(suc_id, "Desconocida")
+        suc_id = r.get("sucursal_id", "") or ""
+        nombre = suc_map.get(suc_id, suc_id if not suc_id else "Desconocida")
         if nombre not in por_sucursal:
             por_sucursal[nombre] = {"total": 0, "retardos": 0}
         por_sucursal[nombre]["total"] += 1
