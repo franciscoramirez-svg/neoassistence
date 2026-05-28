@@ -31,7 +31,7 @@ export default function AdminLoginLogsPage() {
   async function loadLogs() {
     setLoading(true);
     try {
-      const res = await apiRequest<any[]>("/login/logs");
+      const res = await apiRequest<any[]>("/auth/login/logs");
       setLogs(res || []);
     } catch {} finally { setLoading(false); }
   }
