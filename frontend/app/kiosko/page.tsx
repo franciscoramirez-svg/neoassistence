@@ -5,44 +5,90 @@ import { useRouter } from "next/navigation";
 import { apiRequest } from "@/lib/api";
 import { useToast } from "../ToastProvider";
 
-function playChime(type: "Entrada" | "Salida") {
+function playBeep(freq: number = 800, duration: number = 100, type: OscillatorType = "sine") {
   try {
     const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
     const master = ctx.createGain();
     master.connect(ctx.destination);
-    master.gain.value = 0.15;
-
+    master.gain.value = 0.12;
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    osc.connect(g);
+    g.connect(master);
     const now = ctx.currentTime;
+    g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime(1, now + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.001, now + duration / 1000);
+    osc.start(now);
+    osc.stop(now + duration / 1000 + 0.05);
+  } catch {}
+}
 
+function playHikDetected() {
+  playBeep(1200, 60);
+  setTimeout(() => playBeep(1400, 60), 80);
+}
+
+function playHikMatched() {
+  playBeep(900, 120);
+  setTimeout(() => playBeep(1100, 100), 130);
+}
+
+function playHikDenied() {
+  playBeep(300, 300, "sawtooth");
+}
+
+function playHikChime(type: "Entrada" | "Salida") {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const master = ctx.createGain();
+    master.connect(ctx.destination);
+    master.gain.value = 0.12;
+    const now = ctx.currentTime;
     if (type === "Entrada") {
-      [523.25, 659.25, 783.99].forEach((freq, i) => {
+      [660, 880, 1100].forEach((freq, i) => {
         const osc = ctx.createOscillator();
         const g = ctx.createGain();
         osc.type = "sine";
         osc.frequency.value = freq;
         osc.connect(g);
         g.connect(master);
-        const t = now + i * 0.12;
+        const t = now + i * 0.15;
         g.gain.setValueAtTime(0, t);
         g.gain.linearRampToValueAtTime(1, t + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
         osc.start(t);
-        osc.stop(t + 0.35);
+        osc.stop(t + 0.4);
       });
     } else {
-      const osc = ctx.createOscillator();
-      const g = ctx.createGain();
-      osc.type = "sine";
-      osc.connect(g);
-      g.connect(master);
-      osc.frequency.setValueAtTime(587.33, now);
-      osc.frequency.linearRampToValueAtTime(440, now + 0.3);
-      g.gain.setValueAtTime(0, now);
-      g.gain.linearRampToValueAtTime(1, now + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
-      osc.start(now);
-      osc.stop(now + 0.6);
+      [587, 523, 440].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = freq;
+        osc.connect(g);
+        g.connect(master);
+        const t = now + i * 0.15;
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(1, t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+        osc.start(t);
+        osc.stop(t + 0.4);
+      });
     }
+  } catch {}
+}
+
+function playVoice(text: string) {
+  try {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "es-MX";
+    utterance.rate = 0.9;
+    utterance.pitch = 1.1;
+    window.speechSynthesis.speak(utterance);
   } catch {}
 }
 
@@ -100,6 +146,8 @@ export default function KioskPage() {
   const [isIdle, setIsIdle] = useState(false);
   const [faceInFrame, setFaceInFrame] = useState(false);
   const [successName, setSuccessName] = useState("");
+  const [livenessState, setLivenessState] = useState<"idle" | "watching" | "blinked" | "verified">("idle");
+  const [blinkCount, setBlinkCount] = useState(0);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -107,27 +155,8 @@ export default function KioskPage() {
   const detectionIntervalRef = useRef<any>(null);
   const faceapiRef = useRef<any>(null);
   const idleTimerRef = useRef<any>(null);
-
-  function playBeep(freq: number = 660, duration: number = 150) {
-    try {
-      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const master = ctx.createGain();
-      master.connect(ctx.destination);
-      master.gain.value = 0.12;
-      const osc = ctx.createOscillator();
-      const g = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.value = freq;
-      osc.connect(g);
-      g.connect(master);
-      const now = ctx.currentTime;
-      g.gain.setValueAtTime(0, now);
-      g.gain.linearRampToValueAtTime(1, now + 0.01);
-      g.gain.exponentialRampToValueAtTime(0.001, now + duration / 1000);
-      osc.start(now);
-      osc.stop(now + duration / 1000 + 0.05);
-    } catch {}
-  }
+  const blinkStateRef = useRef({ eyesOpen: true, blinkCount: 0, livenessDone: false });
+  const livenessTimerRef = useRef<any>(null);
 
   useEffect(() => { setMounted(true); }, []);
   useEffect(() => { if (mounted && !user) router.push("/login"); }, [mounted, user, router]);
@@ -248,6 +277,55 @@ export default function KioskPage() {
             setFaceRegDetected(true);
             return;
           }
+          
+          // --- Anti-spoofing: blink detection ---
+          if (!blinkStateRef.current.livenessDone) {
+            const landmarks = result.landmarks;
+            const leftEye = landmarks.getLeftEye();
+            const rightEye = landmarks.getRightEye();
+            
+            const ear = (eye: any) => {
+              const p1 = Math.sqrt((eye[1].x - eye[5].x) ** 2 + (eye[1].y - eye[5].y) ** 2);
+              const p2 = Math.sqrt((eye[2].x - eye[4].x) ** 2 + (eye[2].y - eye[4].y) ** 2);
+              const p0 = Math.sqrt((eye[0].x - eye[3].x) ** 2 + (eye[0].y - eye[3].y) ** 2);
+              return (p1 + p2) / (2 * p0);
+            };
+            
+            const leftEAR = ear(leftEye);
+            const rightEAR = ear(rightEye);
+            const avgEAR = (leftEAR + rightEAR) / 2;
+            const eyesClosed = avgEAR < 0.2;
+            
+            if (!blinkStateRef.current.livenessDone) {
+              if (eyesClosed && blinkStateRef.current.eyesOpen) {
+                blinkStateRef.current.eyesOpen = false;
+              } else if (!eyesClosed && !blinkStateRef.current.eyesOpen) {
+                blinkStateRef.current.eyesOpen = true;
+                blinkStateRef.current.blinkCount++;
+                if (blinkStateRef.current.blinkCount === 1) {
+                  playHikDetected();
+                  setLivenessState("blinked");
+                  setFaceStatus("Confirma parpadeando otra vez...");
+                }
+                if (blinkStateRef.current.blinkCount >= 2) {
+                  blinkStateRef.current.livenessDone = true;
+                  setLivenessState("verified");
+                  setBlinkCount(2);
+                  playHikMatched();
+                } else {
+                  setBlinkCount(blinkStateRef.current.blinkCount);
+                }
+              }
+            }
+            
+            if (!blinkStateRef.current.livenessDone) {
+              setLivenessState("watching");
+              setFaceStatus(blinkStateRef.current.blinkCount === 0 ? "Parpadea para confirmar que eres real..." : "Parpadea otra vez...");
+              return;
+            }
+          }
+          // --- End anti-spoofing ---
+          
           const descriptor = Array.from(result.descriptor as Float32Array);
           let bestMatch: {name: string; distance: number} | null = null;
           let secondBest: {name: string; distance: number} | null = null;
@@ -264,8 +342,8 @@ export default function KioskPage() {
           
           if (bestMatch && bestMatch.distance < 0.45 && (!secondBest || bestMatch.distance / secondBest.distance < 0.8)) {
             console.log("Match:", bestMatch.name, bestMatch.distance);
-            playBeep(880, 200);
-            authenticateUser(bestMatch.name, true);
+            playVoice("Bienvenido " + bestMatch.name);
+            setTimeout(() => authenticateUser(bestMatch.name, true), 600);
           } else {
             setFaceStatus(bestMatch && bestMatch.distance < 0.7 ? "Rostro desconocido" : "Buscando...");
           }
@@ -288,6 +366,12 @@ export default function KioskPage() {
       const stream = videoRef.current.srcObject as MediaStream;
       stream.getTracks().forEach(t => t.stop());
     }
+  }
+
+  function resetLiveness() {
+    blinkStateRef.current = { eyesOpen: true, blinkCount: 0, livenessDone: false };
+    setLivenessState("idle");
+    setBlinkCount(0);
   }
 
   async function authenticateUser(name: string, fromFace: boolean = false, pin?: string) {
@@ -345,7 +429,7 @@ export default function KioskPage() {
         method: "PUT",
         body: JSON.stringify({ face_descriptor: Array.from(result.descriptor as Float32Array) }),
       });
-      playBeep(1047, 300);
+      playHikMatched();
       setShowFaceReg(false);
       setIdentifiedUser(null);
       setProcessing(false);
@@ -372,7 +456,8 @@ export default function KioskPage() {
     setSuccess(false);
     setMessage("");
 
-    playChime(type);
+    playHikChime(type);
+    playVoice(type === "Entrada" ? "Entrada registrada" : "Salida registrada");
 
     try {
       await apiRequest<{message: string}>("/records", {
@@ -394,6 +479,7 @@ export default function KioskPage() {
         setIdentifiedUser(null);
         setSuccess(false);
         setProcessing(false);
+        resetLiveness();
         loadDescriptors();
       }, 3500);
     } catch (e: any) {
@@ -437,6 +523,7 @@ export default function KioskPage() {
         <style>{`
           @keyframes fadeInUp { from { opacity:0; transform:translateY(30px) } to { opacity:1; transform:translateY(0) } }
           @keyframes scaleBounce { 0% { transform:scale(0) } 60% { transform:scale(1.15) } 100% { transform:scale(1) } }
+          @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.4 } }
         `}</style>
       </main>
     );
@@ -457,7 +544,7 @@ export default function KioskPage() {
       <main className="page-shell" style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100dvh",padding:16}}>
         <NeonClock />
         <div style={{width:"100%",maxWidth:360}}>
-          <button onClick={()=>{setIdentifiedUser(null);setProcessing(false);loadDescriptors();}} style={{position:"fixed",top:12,right:12,padding:"8px 12px",borderRadius:8,border:"1px solid rgba(208,138,255,0.2)",background:"transparent",color:"#9bb4ca",fontSize:12}}>Cambiar</button>
+          <button onClick={()=>{setIdentifiedUser(null);setProcessing(false);resetLiveness();loadDescriptors();}} style={{position:"fixed",top:12,right:12,padding:"8px 12px",borderRadius:8,border:"1px solid rgba(208,138,255,0.2)",background:"transparent",color:"#9bb4ca",fontSize:12}}>Cambiar</button>
           <h1 style={{color:"#5ef2ff",fontSize:18,marginBottom:6}}>REGISTRO</h1>
           <p style={{color:"#9cffb5",fontSize:20,marginBottom:12,fontWeight:"bold"}}>{identifiedUser.name}</p>
           <p style={{color:"#5ef2ff",fontSize:11,marginBottom:12}}>GPS: {locationReady ? "OK" : "..."}</p>
@@ -485,9 +572,20 @@ export default function KioskPage() {
           <canvas ref={canvasRef} style={{position:"absolute",top:0,left:0,width:"100%",height:"100%"}} />
         </div>
         
-        <p style={{color:"#9bb4ca",fontSize:13,textAlign:"center",marginBottom:8}}>
+        <p style={{color:"#9bb4ca",fontSize:13,textAlign:"center",marginBottom:4}}>
           {faceStatus || (modelsLoaded ? <div className="skeleton" style={{width:160,height:20,borderRadius:8,display:"inline-block",verticalAlign:"middle"}} /> : "Iniciando modelos...")}
         </p>
+        
+        {livenessState === "watching" && (
+          <p style={{color:"#ffcc5e",fontSize:11,textAlign:"center",marginBottom:8,animation:"pulse 1.5s infinite"}}>
+            👁 Parpadea para confirmar que eres real
+          </p>
+        )}
+        {livenessState === "blinked" && (
+          <p style={{color:"#9cffb5",fontSize:11,textAlign:"center",marginBottom:8}}>
+            ✓ 1 parpadeo — parpadea otra vez
+          </p>
+        )}
         
         {(user?.role === "admin" || user?.role?.toLowerCase().includes("supervisor")) && (
           <button onClick={() => setManualMode(true)} style={{width:"100%",padding:"10px",borderRadius:10,border:"1px solid rgba(208,138,255,0.3)",background:"rgba(208,138,255,0.1)",color:"#d08aff",fontSize:13}}>
