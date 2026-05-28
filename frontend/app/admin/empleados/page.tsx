@@ -37,6 +37,7 @@ export default function EmpleadosAdminPage() {
   const [user, setUser] = useState(getStoredUser());
   const [mounted, setMounted] = useState(false);
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [branches, setBranches] = useState<{id:string;nombre:string}[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEmp, setSelectedEmp] = useState<Employee | null>(null);
   const [editMode, setEditMode] = useState(false);
@@ -99,6 +100,7 @@ export default function EmpleadosAdminPage() {
   useEffect(() => {
     if (!user || user.role !== "admin") { router.push("/dashboard"); return; }
     loadEmployees();
+    loadBranches();
   }, [user]);
 
   async function loadEmployees() {
@@ -108,6 +110,13 @@ export default function EmpleadosAdminPage() {
       setEmployees(res || []);
     } catch {}
     setLoading(false);
+  }
+
+  async function loadBranches() {
+    try {
+      const res = await apiRequest<any[]>("/branches");
+      setBranches(res || []);
+    } catch {}
   }
 
   useEffect(() => {
@@ -308,6 +317,7 @@ export default function EmpleadosAdminPage() {
                 <th style={{textAlign:"left",padding:"12px 8px",color:"#9bb4ca"}}>Nombre</th>
                 <th style={{textAlign:"left",padding:"12px 8px",color:"#9bb4ca"}}>No.</th>
                 <th style={{textAlign:"left",padding:"12px 8px",color:"#9bb4ca"}}>Rol</th>
+                <th style={{textAlign:"left",padding:"12px 8px",color:"#9bb4ca"}}>Sucursal</th>
                 <th style={{textAlign:"center",padding:"12px 8px",color:"#9bb4ca"}}>PIN</th>
                 <th style={{textAlign:"center",padding:"12px 8px",color:"#9bb4ca"}}>Horario</th>
                 <th style={{textAlign:"center",padding:"12px 8px",color:"#9bb4ca"}}>Tol.</th>
@@ -321,6 +331,7 @@ export default function EmpleadosAdminPage() {
                   <td style={{padding:"12px 8px",color:"white"}}>{emp.nombre}</td>
                   <td style={{padding:"12px 8px",color:"#9bb4ca",fontFamily:"monospace",fontSize:13}}>{emp.numero_empleado || "—"}</td>
                   <td style={{padding:"12px 8px",color:"#9bb4ca"}}>{emp.rol || "employee"}</td>
+                  <td style={{padding:"12px 8px",color:"#9bb4ca",fontSize:12}}>{branches.find(b=>b.id===emp.sucursal_id)?.nombre || <span style={{color:"#5a6a7a"}}>—</span>}</td>
                   <td style={{padding:"12px 8px",textAlign:"center",color:"#ffcc5e",fontFamily:"monospace",fontSize:13,fontWeight:"bold"}}>{emp.pin || "—"}</td>
                   <td style={{padding:"12px 8px",textAlign:"center",color:"#5ef2ff",fontSize:12}}>{(emp.hora_entrada||"??").slice(0,5)}-{(emp.hora_salida||"??").slice(0,5)}</td>
                   <td style={{padding:"12px 8px",textAlign:"center",color:"#9bb4ca",fontSize:12}}>{emp.tolerancia_minutos ?? 15}min</td>
@@ -368,6 +379,14 @@ export default function EmpleadosAdminPage() {
             <div style={{marginBottom:10}}>
               <label style={{display:"block",marginBottom:4,color:"#9bb4ca",fontSize:12}}>Rol / Puesto</label>
               <input value={formData.rol} onChange={e => setFormData({...formData, rol: e.target.value})} placeholder="Ej: Tecnico Electronico, Andamiero, Supervisor..." style={{width:"100%",padding:10,borderRadius:8,border:"1px solid rgba(94,242,255,0.2)",background:"rgba(10,21,38,0.8)",color:"white",fontSize:14}} />
+            </div>
+
+            <div style={{marginBottom:10}}>
+              <label style={{display:"block",marginBottom:4,color:"#9bb4ca",fontSize:12}}>Sucursal</label>
+              <select value={formData.sucursal_id} onChange={e => setFormData({...formData, sucursal_id: e.target.value})} style={{width:"100%",padding:10,borderRadius:8,border:"1px solid rgba(94,242,255,0.2)",background:"rgba(10,21,38,0.8)",color:"white",fontSize:14}}>
+                <option value="">Sin sucursal</option>
+                {branches.map(b => <option key={b.id} value={b.id}>{b.nombre}</option>)}
+              </select>
             </div>
 
             <div style={{marginBottom:10}}>
