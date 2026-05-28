@@ -147,7 +147,6 @@ export default function KioskPage() {
   const [faceInFrame, setFaceInFrame] = useState(false);
   const [successName, setSuccessName] = useState("");
   const [livenessState, setLivenessState] = useState<"idle" | "watching">("idle");
-  const [blinkCount, setBlinkCount] = useState(0);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -155,7 +154,7 @@ export default function KioskPage() {
   const detectionIntervalRef = useRef<any>(null);
   const faceapiRef = useRef<any>(null);
   const idleTimerRef = useRef<any>(null);
-  const blinkStateRef = useRef({ eyesOpen: true, blinkCount: 0, livenessDone: false });
+  const faceStillTimerRef = useRef<number>(0);
 
   useEffect(() => { setMounted(true); }, []);
   useEffect(() => { if (mounted && !user) router.push("/login"); }, [mounted, user, router]);
@@ -253,8 +252,8 @@ export default function KioskPage() {
     startCamera();
   }
 
-  const faceSeenAtRef = useRef<number>(0);
-  const lastBlinkAtRef = useRef<number>(0);
+  const landmarkHistoryRef = useRef<{x: number; y: number}[]>([]);
+  const spoofWarnedRef = useRef(false);
 
   async function detectOnce() {
     if (!videoRef.current || (identifiedUser && !showFaceReg) || success || processing || !faceapiRef.current) return;
@@ -275,25 +274,30 @@ export default function KioskPage() {
           return;
         }
         
-        // --- Passive anti-spoofing: track blinks silently ---
-        const landmarks = result.landmarks;
-        const ear = (eye: any) => {
-          const p1 = Math.sqrt((eye[1].x - eye[5].x) ** 2 + (eye[1].y - eye[5].y) ** 2);
-          const p2 = Math.sqrt((eye[2].x - eye[4].x) ** 2 + (eye[2].y - eye[4].y) ** 2);
-          const p0 = Math.sqrt((eye[0].x - eye[3].x) ** 2 + (eye[0].y - eye[3].y) ** 2);
-          return (p1 + p2) / (2 * p0);
-        };
-        const avgEAR = (ear(landmarks.getLeftEye()) + ear(landmarks.getRightEye())) / 2;
-        const eyesClosed = avgEAR < 0.25;
+        // --- Passive liveness: detect natural movement ---
+        const nose = result.landmarks.getNose()[0];
+        landmarkHistoryRef.current.push({ x: nose.x, y: nose.y });
+        if (landmarkHistoryRef.current.length > 10) landmarkHistoryRef.current.shift();
         
-        if (eyesClosed && blinkStateRef.current.eyesOpen) {
-          blinkStateRef.current.eyesOpen = false;
-        } else if (!eyesClosed && !blinkStateRef.current.eyesOpen) {
-          blinkStateRef.current.eyesOpen = true;
-          blinkStateRef.current.blinkCount++;
-          lastBlinkAtRef.current = Date.now();
+        if (landmarkHistoryRef.current.length >= 10) {
+          const xs = landmarkHistoryRef.current.map(p => p.x);
+          const ys = landmarkHistoryRef.current.map(p => p.y);
+          const meanX = xs.reduce((a, b) => a + b, 0) / xs.length;
+          const meanY = ys.reduce((a, b) => a + b, 0) / ys.length;
+          const varX = xs.reduce((a, b) => a + (b - meanX) ** 2, 0) / xs.length;
+          const varY = ys.reduce((a, b) => a + (b - meanY) ** 2, 0) / ys.length;
+          const movement = Math.sqrt(varX + varY);
+          
+          if (movement < 0.2 && !spoofWarnedRef.current) {
+            spoofWarnedRef.current = true;
+            setLivenessState("watching");
+            setFaceStatus("Mueve ligeramente tu rostro");
+            scheduleDetect(200);
+            return;
+          }
+          spoofWarnedRef.current = false;
         }
-        // --- End passive anti-spoofing ---
+        // --- End passive liveness ---
         
         const descriptor = Array.from(result.descriptor as Float32Array);
         let bestMatch: {name: string; distance: number} | null = null;
@@ -309,42 +313,19 @@ export default function KioskPage() {
           }
         }
         
-        // Only require blink if face has been still for > 8s without any blink
-        const now = Date.now();
         if (bestMatch && bestMatch.distance < 0.45 && (!secondBest || bestMatch.distance / secondBest.distance < 0.8)) {
-          if (blinkStateRef.current.blinkCount >= 1 || lastBlinkAtRef.current > 0) {
-            // Has blinked before → trust it
-            console.log("Match:", bestMatch.name, bestMatch.distance);
-            playVoice("Bienvenido " + bestMatch.name);
-            setTimeout(() => authenticateUser(bestMatch.name, true), 600);
-          } else if (faceSeenAtRef.current === 0) {
-            // First time seeing this face → wait for a blink or timeout
-            faceSeenAtRef.current = now;
-            setFaceStatus("Reconociendo...");
-            scheduleDetect(200);
-            return;
-          } else if (now - faceSeenAtRef.current > 8000) {
-            // Face has been still for > 8s, no blink detected → request one
-            playHikDetected();
-            setLivenessState("watching");
-            setFaceStatus("Parpadea para confirmar que eres real");
-            scheduleDetect(200);
-            return;
-          } else {
-            // Still waiting for first blink (within 8s window)
-            setFaceStatus("Reconociendo...");
-            scheduleDetect(200);
-            return;
-          }
+          console.log("Match:", bestMatch.name, bestMatch.distance);
+          playVoice("Bienvenido " + bestMatch.name);
+          setTimeout(() => authenticateUser(bestMatch.name, true), 600);
         } else {
-          faceSeenAtRef.current = 0;
           setFaceStatus(bestMatch && bestMatch.distance < 0.7 ? "Rostro desconocido" : "Buscando...");
-          scheduleDetect(500);
+          scheduleDetect(200);
           return;
         }
       } else {
         setFaceInFrame(false);
-        faceSeenAtRef.current = 0;
+        landmarkHistoryRef.current = [];
+        spoofWarnedRef.current = false;
         if (showFaceReg) setFaceRegDetected(false);
         setFaceStatus("Coloca tu rostro frente a la cámara");
         scheduleDetect(500);
@@ -379,11 +360,9 @@ export default function KioskPage() {
   }
 
   function resetLiveness() {
-    blinkStateRef.current = { eyesOpen: true, blinkCount: 0, livenessDone: false };
     setLivenessState("idle");
-    setBlinkCount(0);
-    faceSeenAtRef.current = 0;
-    lastBlinkAtRef.current = 0;
+    landmarkHistoryRef.current = [];
+    spoofWarnedRef.current = false;
   }
 
   async function authenticateUser(name: string, fromFace: boolean = false, pin?: string) {
