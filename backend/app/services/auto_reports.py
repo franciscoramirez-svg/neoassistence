@@ -116,31 +116,69 @@ def send_email_report(report: dict, to_email: str) -> bool:
         if not settings.smtp_user or not settings.smtp_password:
             print(f"[AUTO-REPORTE] SMTP no configurado. Simulando envío a {to_email}")
             return True
-        
-        msg = MIMEMultipart()
-        msg["From"] = settings.email_from or settings.smtp_user
+
+        por_empleado = report.get("por_empleado", {})
+        empleados_html = ""
+        for nombre, vals in sorted(por_empleado.items()):
+            empleados_html += f"<tr><td style='padding:6px 12px;border-bottom:1px solid #eee'>{nombre}</td><td style='padding:6px 12px;border-bottom:1px solid #eee;text-align:center'>{vals.get('entradas',0)}</td><td style='padding:6px 12px;border-bottom:1px solid #eee;text-align:center'>{vals.get('salidas',0)}</td><td style='padding:6px 12px;border-bottom:1px solid #eee;text-align:center;color:#e74c3c'>{vals.get('retardos',0)}</td></tr>"
+
+        por_sucursal = report.get("por_sucursal", {})
+        sucursales_html = ""
+        for nombre, vals in sorted(por_sucursal.items()):
+            sucursales_html += f"<tr><td style='padding:6px 12px;border-bottom:1px solid #eee'>{nombre}</td><td style='padding:6px 12px;border-bottom:1px solid #eee;text-align:center'>{vals.get('total',0)}</td><td style='padding:6px 12px;border-bottom:1px solid #eee;text-align:center;color:#e74c3c'>{vals.get('retardos',0)}</td></tr>"
+
+        html = f"""<!DOCTYPE html>
+<html><head><meta charset='utf-8'></head><body style='margin:0;padding:0;background:#f4f6f9;font-family:Segoe UI,sans-serif'>
+<table width='100%' cellpadding='0' cellspacing='0'><tr><td align='center' style='padding:30px 15px'>
+<table width='600' cellpadding='0' cellspacing='0' style='background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)'>
+<tr><td style='background:#0a1526;padding:24px 30px'>
+<table width='100%'><tr><td><h1 style='color:#5ef2ff;margin:0;font-size:22px'>NeoAssistence</h1><p style='color:#9bb4ca;margin:4px 0 0;font-size:13px'>Reporte de Asistencia</p></td>
+<td align='right'><p style='color:#fff;margin:0;font-size:24px;font-weight:700'>{report['fecha']}</p></td></tr></table>
+</td></tr>
+<tr><td style='padding:30px'>
+<table width='100%' cellpadding='0' cellspacing='0'>
+<tr><td style='background:#f0faf0;border-radius:8px;padding:16px;text-align:center;width:25%'><p style='margin:0;font-size:11px;color:#666'>REGISTROS</p><p style='margin:4px 0 0;font-size:28px;font-weight:700;color:#2ecc71'>{report['total']}</p></td>
+<td style='width:8px'></td>
+<td style='background:#f0faff;border-radius:8px;padding:16px;text-align:center;width:25%'><p style='margin:0;font-size:11px;color:#666'>ENTRADAS</p><p style='margin:4px 0 0;font-size:28px;font-weight:700;color:#3498db'>{report['entradas']}</p></td>
+<td style='width:8px'></td>
+<td style='background:#f5f0ff;border-radius:8px;padding:16px;text-align:center;width:25%'><p style='margin:0;font-size:11px;color:#666'>SALIDAS</p><p style='margin:4px 0 0;font-size:28px;font-weight:700;color:#9b59b6'>{report['salidas']}</p></td>
+<td style='width:8px'></td>
+<td style='background:#fef0f0;border-radius:8px;padding:16px;text-align:center;width:25%'><p style='margin:0;font-size:11px;color:#666'>RETARDOS</p><p style='margin:4px 0 0;font-size:28px;font-weight:700;color:#e74c3c'>{report['retardos']}</p></td>
+</tr></table>
+
+<h3 style='margin:24px 0 12px;font-size:15px;color:#333'>Por empleado</h3>
+<table width='100%' cellpadding='0' cellspacing='0' style='border-collapse:collapse;font-size:13px'>
+<tr style='background:#f8f9fa'><th style='padding:8px 12px;text-align:left;color:#666;font-weight:600'>Empleado</th><th style='padding:8px 12px;text-align:center;color:#666;font-weight:600'>Entradas</th><th style='padding:8px 12px;text-align:center;color:#666;font-weight:600'>Salidas</th><th style='padding:8px 12px;text-align:center;color:#666;font-weight:600'>Retardos</th></tr>
+{empleados_html}
+</table>
+
+<h3 style='margin:24px 0 12px;font-size:15px;color:#333'>Por sucursal</h3>
+<table width='100%' cellpadding='0' cellspacing='0' style='border-collapse:collapse;font-size:13px'>
+<tr style='background:#f8f9fa'><th style='padding:8px 12px;text-align:left;color:#666;font-weight:600'>Sucursal</th><th style='padding:8px 12px;text-align:center;color:#666;font-weight:600'>Total</th><th style='padding:8px 12px;text-align:center;color:#666;font-weight:600'>Retardos</th></tr>
+{sucursales_html}
+</table>
+
+<p style='margin-top:24px;font-size:12px;color:#999;text-align:center'>Este reporte es generado automáticamente por NeoAssistence.</p>
+</td></tr></table>
+</td></tr></table>
+</body></html>"""
+
+        body_plain = f"Reporte de Asistencia - {report['fecha']}\n\nTotal: {report['total']} | Entradas: {report['entradas']} | Salidas: {report['salidas']} | Retardos: {report['retardos']} | A tiempo: {report['a_tiempo']}\n\n-- NeoAssistence"
+
+        msg = MIMEMultipart("alternative")
+        msg["From"] = f"NeoAssistence <{settings.email_from or settings.smtp_user}>"
         msg["To"] = to_email
         msg["Subject"] = f"Reporte de Asistencia - {report['fecha']}"
-        
-        body = f"""
-Reporte de Asistencia - {report['fecha']}
+        msg["Reply-To"] = settings.email_from or settings.smtp_user
+        msg.attach(MIMEText(body_plain, "plain"))
+        msg.attach(MIMEText(html, "html"))
 
-Total registros: {report['total']}
-Entradas: {report['entradas']}
-Salidas: {report['salidas']}
-Retardos: {report['retardos']}
-A tiempo: {report['a_tiempo']}
-
--- NeoAssistence
-"""
-        msg.attach(MIMEText(body, "plain"))
-        
         server = smtplib.SMTP(settings.smtp_host, settings.smtp_port)
         server.starttls()
         server.login(settings.smtp_user, settings.smtp_password)
         server.send_message(msg)
         server.quit()
-        
+
         print(f"[AUTO-REPORTE] Email enviado a {to_email}")
         return True
     except Exception as e:
