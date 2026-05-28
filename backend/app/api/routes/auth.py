@@ -53,9 +53,41 @@ def login(payload: LoginRequest, request: Request) -> LoginResponse:
 
 
 @router.get("/login/logs")
-def get_login_logs():
+def get_login_logs(
+    page: int = 1,
+    per_page: int = 20,
+    search: str | None = None,
+    success: bool | None = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
+):
     try:
-        result = get_supabase().table("login_log").select("*").order("created_at", desc=True).limit(100).execute()
-        return result.data or []
+        sb = get_supabase()
+
+        def apply_filters(q):
+            if search:
+                q = q.ilike("employee_name", f"%{search}%")
+            if success is not None:
+                q = q.eq("success", success)
+            if start_date:
+                q = q.gte("created_at", start_date)
+            if end_date:
+                q = q.lte("created_at", end_date)
+            return q
+
+        count_result = apply_filters(sb.table("login_log").select("*", count="exact")).execute()
+        total = count_result.count if count_result.count else 0
+
+        data_query = apply_filters(sb.table("login_log").select("*"))
+        data_query = data_query.order("created_at", desc=True)
+        data_query = data_query.range((page - 1) * per_page, page * per_page - 1)
+        data_result = data_query.execute()
+
+        return {
+            "data": data_result.data or [],
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+        }
     except:
-        return []
+        return {"data": [], "total": 0, "page": 1, "per_page": per_page}
