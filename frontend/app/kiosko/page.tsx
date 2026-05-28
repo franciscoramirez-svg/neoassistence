@@ -254,112 +254,122 @@ export default function KioskPage() {
     startCamera();
   }
 
-  function startDetection() {
-    if (!videoRef.current || !canvasRef.current || !faceapiRef.current) return;
+  async function detectOnce() {
+    if (!videoRef.current || (identifiedUser && !showFaceReg) || success || processing || !faceapiRef.current) return;
     const faceapi = faceapiRef.current;
     
-    setIsIdle(false);
-    resetIdleTimer();
-    
-    detectionIntervalRef.current = setInterval(async () => {
-      if (!videoRef.current || (identifiedUser && !showFaceReg) || success || processing) return;
+    try {
+      const result = await faceapi
+        .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions({ inputSize: 160 }))
+        .withFaceLandmarks()
+        .withFaceDescriptor();
       
-      try {
-        const result = await faceapi
-          .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions({ inputSize: 160 }))
-          .withFaceLandmarks()
-          .withFaceDescriptor();
+      if (result) {
+        setFaceInFrame(true);
+        resetIdleTimer();
+        if (showFaceReg) {
+          setFaceRegDetected(true);
+          scheduleDetect(300);
+          return;
+        }
         
-        if (result) {
-          setFaceInFrame(true);
-          resetIdleTimer();
-          if (showFaceReg) {
-            setFaceRegDetected(true);
+        // --- Anti-spoofing: blink detection (runs at ~300ms) ---
+        if (!blinkStateRef.current.livenessDone) {
+          const landmarks = result.landmarks;
+          const leftEye = landmarks.getLeftEye();
+          const rightEye = landmarks.getRightEye();
+          
+          const ear = (eye: any) => {
+            const p1 = Math.sqrt((eye[1].x - eye[5].x) ** 2 + (eye[1].y - eye[5].y) ** 2);
+            const p2 = Math.sqrt((eye[2].x - eye[4].x) ** 2 + (eye[2].y - eye[4].y) ** 2);
+            const p0 = Math.sqrt((eye[0].x - eye[3].x) ** 2 + (eye[0].y - eye[3].y) ** 2);
+            return (p1 + p2) / (2 * p0);
+          };
+          
+          const leftEAR = ear(leftEye);
+          const rightEAR = ear(rightEye);
+          const avgEAR = (leftEAR + rightEAR) / 2;
+          const eyesClosed = avgEAR < 0.25;
+          
+          if (eyesClosed && blinkStateRef.current.eyesOpen) {
+            blinkStateRef.current.eyesOpen = false;
+          } else if (!eyesClosed && !blinkStateRef.current.eyesOpen) {
+            blinkStateRef.current.eyesOpen = true;
+            blinkStateRef.current.blinkCount++;
+            if (blinkStateRef.current.blinkCount === 1) {
+              playHikDetected();
+              setLivenessState("blinked");
+              setFaceStatus("Confirma parpadeando otra vez...");
+            }
+            if (blinkStateRef.current.blinkCount >= 2) {
+              blinkStateRef.current.livenessDone = true;
+              setLivenessState("verified");
+              setBlinkCount(2);
+              playHikMatched();
+            } else {
+              setBlinkCount(blinkStateRef.current.blinkCount);
+            }
+          }
+          
+          if (!blinkStateRef.current.livenessDone) {
+            setLivenessState("watching");
+            setFaceStatus(blinkStateRef.current.blinkCount === 0 ? "Parpadea para confirmar que eres real..." : "Parpadea otra vez...");
+            scheduleDetect(300);
             return;
           }
-          
-          // --- Anti-spoofing: blink detection ---
-          if (!blinkStateRef.current.livenessDone) {
-            const landmarks = result.landmarks;
-            const leftEye = landmarks.getLeftEye();
-            const rightEye = landmarks.getRightEye();
-            
-            const ear = (eye: any) => {
-              const p1 = Math.sqrt((eye[1].x - eye[5].x) ** 2 + (eye[1].y - eye[5].y) ** 2);
-              const p2 = Math.sqrt((eye[2].x - eye[4].x) ** 2 + (eye[2].y - eye[4].y) ** 2);
-              const p0 = Math.sqrt((eye[0].x - eye[3].x) ** 2 + (eye[0].y - eye[3].y) ** 2);
-              return (p1 + p2) / (2 * p0);
-            };
-            
-            const leftEAR = ear(leftEye);
-            const rightEAR = ear(rightEye);
-            const avgEAR = (leftEAR + rightEAR) / 2;
-            const eyesClosed = avgEAR < 0.2;
-            
-            if (!blinkStateRef.current.livenessDone) {
-              if (eyesClosed && blinkStateRef.current.eyesOpen) {
-                blinkStateRef.current.eyesOpen = false;
-              } else if (!eyesClosed && !blinkStateRef.current.eyesOpen) {
-                blinkStateRef.current.eyesOpen = true;
-                blinkStateRef.current.blinkCount++;
-                if (blinkStateRef.current.blinkCount === 1) {
-                  playHikDetected();
-                  setLivenessState("blinked");
-                  setFaceStatus("Confirma parpadeando otra vez...");
-                }
-                if (blinkStateRef.current.blinkCount >= 2) {
-                  blinkStateRef.current.livenessDone = true;
-                  setLivenessState("verified");
-                  setBlinkCount(2);
-                  playHikMatched();
-                } else {
-                  setBlinkCount(blinkStateRef.current.blinkCount);
-                }
-              }
-            }
-            
-            if (!blinkStateRef.current.livenessDone) {
-              setLivenessState("watching");
-              setFaceStatus(blinkStateRef.current.blinkCount === 0 ? "Parpadea para confirmar que eres real..." : "Parpadea otra vez...");
-              return;
-            }
-          }
-          // --- End anti-spoofing ---
-          
-          const descriptor = Array.from(result.descriptor as Float32Array);
-          let bestMatch: {name: string; distance: number} | null = null;
-          let secondBest: {name: string; distance: number} | null = null;
-          
-          for (const emp of faceDescriptorsRef.current) {
-            const dist = euclideanDistance(descriptor, emp.descriptor);
-            if (!bestMatch || dist < bestMatch.distance) {
-              secondBest = bestMatch;
-              bestMatch = { name: emp.name, distance: dist };
-            } else if (!secondBest || dist < secondBest.distance) {
-              secondBest = { name: emp.name, distance: dist };
-            }
-          }
-          
-          if (bestMatch && bestMatch.distance < 0.45 && (!secondBest || bestMatch.distance / secondBest.distance < 0.8)) {
-            console.log("Match:", bestMatch.name, bestMatch.distance);
-            playVoice("Bienvenido " + bestMatch.name);
-            setTimeout(() => authenticateUser(bestMatch.name, true), 600);
-          } else {
-            setFaceStatus(bestMatch && bestMatch.distance < 0.7 ? "Rostro desconocido" : "Buscando...");
-          }
-        } else {
-          setFaceInFrame(false);
-          if (showFaceReg) setFaceRegDetected(false);
-          setFaceStatus("Coloca tu rostro frente a la cámara");
         }
-      } catch {}
-    }, 2000);
+        // --- End anti-spoofing ---
+        
+        const descriptor = Array.from(result.descriptor as Float32Array);
+        let bestMatch: {name: string; distance: number} | null = null;
+        let secondBest: {name: string; distance: number} | null = null;
+        
+        for (const emp of faceDescriptorsRef.current) {
+          const dist = euclideanDistance(descriptor, emp.descriptor);
+          if (!bestMatch || dist < bestMatch.distance) {
+            secondBest = bestMatch;
+            bestMatch = { name: emp.name, distance: dist };
+          } else if (!secondBest || dist < secondBest.distance) {
+            secondBest = { name: emp.name, distance: dist };
+          }
+        }
+        
+        if (bestMatch && bestMatch.distance < 0.45 && (!secondBest || bestMatch.distance / secondBest.distance < 0.8)) {
+          console.log("Match:", bestMatch.name, bestMatch.distance);
+          playVoice("Bienvenido " + bestMatch.name);
+          setTimeout(() => authenticateUser(bestMatch.name, true), 600);
+        } else {
+          setFaceStatus(bestMatch && bestMatch.distance < 0.7 ? "Rostro desconocido" : "Buscando...");
+          scheduleDetect(2000);
+          return;
+        }
+      } else {
+        setFaceInFrame(false);
+        if (showFaceReg) setFaceRegDetected(false);
+        setFaceStatus("Coloca tu rostro frente a la cámara");
+        scheduleDetect(2000);
+        return;
+      }
+    } catch {}
+    scheduleDetect(2000);
+  }
+  
+  function scheduleDetect(delay: number) {
+    if (identifiedUser && !showFaceReg) return;
+    detectionIntervalRef.current = setTimeout(detectOnce, delay);
+  }
+  
+  function startDetection() {
+    if (!videoRef.current || !canvasRef.current || !faceapiRef.current) return;
+    setIsIdle(false);
+    resetIdleTimer();
+    scheduleDetect(300);
   }
 
   function stopDetection() {
     if (idleTimerRef.current) { clearTimeout(idleTimerRef.current); idleTimerRef.current = null; }
     if (detectionIntervalRef.current) {
-      clearInterval(detectionIntervalRef.current);
+      clearTimeout(detectionIntervalRef.current);
       detectionIntervalRef.current = null;
     }
     if (videoRef.current?.srcObject) {
