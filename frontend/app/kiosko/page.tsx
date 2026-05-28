@@ -146,7 +146,7 @@ export default function KioskPage() {
   const [isIdle, setIsIdle] = useState(false);
   const [faceInFrame, setFaceInFrame] = useState(false);
   const [successName, setSuccessName] = useState("");
-  const [livenessState, setLivenessState] = useState<"idle" | "watching" | "blinked" | "verified">("idle");
+  const [livenessState, setLivenessState] = useState<"idle" | "watching">("idle");
   const [blinkCount, setBlinkCount] = useState(0);
   
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -156,7 +156,6 @@ export default function KioskPage() {
   const faceapiRef = useRef<any>(null);
   const idleTimerRef = useRef<any>(null);
   const blinkStateRef = useRef({ eyesOpen: true, blinkCount: 0, livenessDone: false });
-  const livenessTimerRef = useRef<any>(null);
 
   useEffect(() => { setMounted(true); }, []);
   useEffect(() => { if (mounted && !user) router.push("/login"); }, [mounted, user, router]);
@@ -592,11 +591,6 @@ export default function KioskPage() {
         {livenessState === "watching" && (
           <p style={{color:"#ffcc5e",fontSize:11,textAlign:"center",marginBottom:8,animation:"pulse 1.5s infinite"}}>
             👁 Parpadea para confirmar que eres real
-          </p>
-        )}
-        {livenessState === "blinked" && (
-          <p style={{color:"#9cffb5",fontSize:11,textAlign:"center",marginBottom:8}}>
-            ✓ 1 parpadeo — parpadea otra vez
           </p>
         )}
         
