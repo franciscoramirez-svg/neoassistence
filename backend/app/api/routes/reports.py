@@ -29,11 +29,13 @@ def get_config():
 
 @router.post("/reports/config")
 def update_config(payload: ReportConfigRequest):
+    existing = get_report_config()
     config = ReportConfig(
         id="auto_reporte",
-        email_destino=payload.email_destino,
+        email_destino=payload.email_destino or existing.email_destino,
         hora_envio=payload.hora_envio if payload.hora_envio else "08:00",
-        dias_activos=payload.dias_activos if payload.dias_activos else ["lun", "mar", "mie", "jue", "vie"]
+        dias_activos=payload.dias_activos if payload.dias_activos else ["lun", "mar", "mie", "jue", "vie"],
+        ultimo_envio=existing.ultimo_envio
     )
     success = save_report_config(config)
     if success:
