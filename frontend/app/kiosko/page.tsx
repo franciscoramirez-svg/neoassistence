@@ -254,6 +254,9 @@ export default function KioskPage() {
     startCamera();
   }
 
+  const faceSeenAtRef = useRef<number>(0);
+  const lastBlinkAtRef = useRef<number>(0);
+
   async function detectOnce() {
     if (!videoRef.current || (identifiedUser && !showFaceReg) || success || processing || !faceapiRef.current) return;
     const faceapi = faceapiRef.current;
@@ -273,52 +276,25 @@ export default function KioskPage() {
           return;
         }
         
-        // --- Anti-spoofing: blink detection (runs at ~300ms) ---
-        if (!blinkStateRef.current.livenessDone) {
-          const landmarks = result.landmarks;
-          const leftEye = landmarks.getLeftEye();
-          const rightEye = landmarks.getRightEye();
-          
-          const ear = (eye: any) => {
-            const p1 = Math.sqrt((eye[1].x - eye[5].x) ** 2 + (eye[1].y - eye[5].y) ** 2);
-            const p2 = Math.sqrt((eye[2].x - eye[4].x) ** 2 + (eye[2].y - eye[4].y) ** 2);
-            const p0 = Math.sqrt((eye[0].x - eye[3].x) ** 2 + (eye[0].y - eye[3].y) ** 2);
-            return (p1 + p2) / (2 * p0);
-          };
-          
-          const leftEAR = ear(leftEye);
-          const rightEAR = ear(rightEye);
-          const avgEAR = (leftEAR + rightEAR) / 2;
-          const eyesClosed = avgEAR < 0.25;
-          
-          if (eyesClosed && blinkStateRef.current.eyesOpen) {
-            blinkStateRef.current.eyesOpen = false;
-          } else if (!eyesClosed && !blinkStateRef.current.eyesOpen) {
-            blinkStateRef.current.eyesOpen = true;
-            blinkStateRef.current.blinkCount++;
-            if (blinkStateRef.current.blinkCount === 1) {
-              playHikDetected();
-              setLivenessState("blinked");
-              setFaceStatus("Confirma parpadeando otra vez...");
-            }
-            if (blinkStateRef.current.blinkCount >= 2) {
-              blinkStateRef.current.livenessDone = true;
-              setLivenessState("verified");
-              setBlinkCount(2);
-              playHikMatched();
-            } else {
-              setBlinkCount(blinkStateRef.current.blinkCount);
-            }
-          }
-          
-          if (!blinkStateRef.current.livenessDone) {
-            setLivenessState("watching");
-            setFaceStatus(blinkStateRef.current.blinkCount === 0 ? "Parpadea para confirmar que eres real..." : "Parpadea otra vez...");
-            scheduleDetect(300);
-            return;
-          }
+        // --- Passive anti-spoofing: track blinks silently ---
+        const landmarks = result.landmarks;
+        const ear = (eye: any) => {
+          const p1 = Math.sqrt((eye[1].x - eye[5].x) ** 2 + (eye[1].y - eye[5].y) ** 2);
+          const p2 = Math.sqrt((eye[2].x - eye[4].x) ** 2 + (eye[2].y - eye[4].y) ** 2);
+          const p0 = Math.sqrt((eye[0].x - eye[3].x) ** 2 + (eye[0].y - eye[3].y) ** 2);
+          return (p1 + p2) / (2 * p0);
+        };
+        const avgEAR = (ear(landmarks.getLeftEye()) + ear(landmarks.getRightEye())) / 2;
+        const eyesClosed = avgEAR < 0.25;
+        
+        if (eyesClosed && blinkStateRef.current.eyesOpen) {
+          blinkStateRef.current.eyesOpen = false;
+        } else if (!eyesClosed && !blinkStateRef.current.eyesOpen) {
+          blinkStateRef.current.eyesOpen = true;
+          blinkStateRef.current.blinkCount++;
+          lastBlinkAtRef.current = Date.now();
         }
-        // --- End anti-spoofing ---
+        // --- End passive anti-spoofing ---
         
         const descriptor = Array.from(result.descriptor as Float32Array);
         let bestMatch: {name: string; distance: number} | null = null;
@@ -334,24 +310,49 @@ export default function KioskPage() {
           }
         }
         
+        // Only require blink if face has been still for > 8s without any blink
+        const now = Date.now();
         if (bestMatch && bestMatch.distance < 0.45 && (!secondBest || bestMatch.distance / secondBest.distance < 0.8)) {
-          console.log("Match:", bestMatch.name, bestMatch.distance);
-          playVoice("Bienvenido " + bestMatch.name);
-          setTimeout(() => authenticateUser(bestMatch.name, true), 600);
+          if (blinkStateRef.current.blinkCount >= 1 || lastBlinkAtRef.current > 0) {
+            // Has blinked before → trust it
+            console.log("Match:", bestMatch.name, bestMatch.distance);
+            playVoice("Bienvenido " + bestMatch.name);
+            setTimeout(() => authenticateUser(bestMatch.name, true), 600);
+          } else if (faceSeenAtRef.current === 0) {
+            // First time seeing this face → wait for a blink or timeout
+            faceSeenAtRef.current = now;
+            setFaceStatus("Reconociendo...");
+            scheduleDetect(200);
+            return;
+          } else if (now - faceSeenAtRef.current > 8000) {
+            // Face has been still for > 8s, no blink detected → request one
+            playHikDetected();
+            setLivenessState("watching");
+            setFaceStatus("Parpadea para confirmar que eres real");
+            scheduleDetect(200);
+            return;
+          } else {
+            // Still waiting for first blink (within 8s window)
+            setFaceStatus("Reconociendo...");
+            scheduleDetect(200);
+            return;
+          }
         } else {
+          faceSeenAtRef.current = 0;
           setFaceStatus(bestMatch && bestMatch.distance < 0.7 ? "Rostro desconocido" : "Buscando...");
-          scheduleDetect(2000);
+          scheduleDetect(500);
           return;
         }
       } else {
         setFaceInFrame(false);
+        faceSeenAtRef.current = 0;
         if (showFaceReg) setFaceRegDetected(false);
         setFaceStatus("Coloca tu rostro frente a la cámara");
-        scheduleDetect(2000);
+        scheduleDetect(500);
         return;
       }
     } catch {}
-    scheduleDetect(2000);
+    scheduleDetect(500);
   }
   
   function scheduleDetect(delay: number) {
@@ -382,6 +383,8 @@ export default function KioskPage() {
     blinkStateRef.current = { eyesOpen: true, blinkCount: 0, livenessDone: false };
     setLivenessState("idle");
     setBlinkCount(0);
+    faceSeenAtRef.current = 0;
+    lastBlinkAtRef.current = 0;
   }
 
   async function authenticateUser(name: string, fromFace: boolean = false, pin?: string) {
