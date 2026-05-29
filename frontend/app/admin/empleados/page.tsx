@@ -114,8 +114,8 @@ export default function EmpleadosAdminPage() {
 
   async function loadBranches() {
     try {
-      const res = await apiRequest<any[]>("/branches");
-      setBranches(res || []);
+      const res = await apiRequest<any>("/branches");
+      setBranches(res?.data || []);
     } catch {}
   }
 
