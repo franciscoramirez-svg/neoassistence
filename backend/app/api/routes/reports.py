@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 from typing import Optional
 from app.services.auto_reports import (
@@ -47,7 +47,7 @@ def get_today_report():
     return get_daily_report()
 
 @router.post("/reports/send")
-def send_report(force: str = "false"):
+def send_report(background_tasks: BackgroundTasks, force: str = "false"):
     if force.lower() == "true":
         from app.services.auto_reports import get_daily_report, send_email_report, get_report_config, save_report_config
         from datetime import datetime
@@ -55,10 +55,12 @@ def send_report(force: str = "false"):
         if not config.email_destino:
             return {"ok": False, "message": "No hay email configurado"}
         report = get_daily_report()
-        success = send_email_report(report, config.email_destino)
-        if success:
-            config.ultimo_envio = datetime.now().isoformat()
-            save_report_config(config)
-            return {"ok": True, "message": "Reporte enviado (forzado)", "data": report}
-        return {"ok": False, "message": "Error al enviar reporte"}
+        def _send():
+            ok = send_email_report(report, config.email_destino)
+            if ok:
+                cfg = get_report_config()
+                cfg.ultimo_envio = datetime.now().isoformat()
+                save_report_config(cfg)
+        background_tasks.add_task(_send)
+        return {"ok": True, "message": "Enviando reporte en segundo plano...", "data": report}
     return run_auto_report()
