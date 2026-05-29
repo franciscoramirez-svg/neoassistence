@@ -444,11 +444,8 @@ export default function KioskPage() {
 
   async function handleCheckIn(type: "Entrada" | "Salida") {
     if (!identifiedUser?.name || !lat || !lon) return;
-    setSuccess(false);
-    setMessage("");
-
-    playHikChime(type);
-    playVoice(type === "Entrada" ? "Entrada registrada" : "Salida registrada");
+    setMessage("Procesando...");
+    setProcessing(true);
 
     try {
       await apiRequest<{message: string}>("/records", {
@@ -461,6 +458,9 @@ export default function KioskPage() {
           source: "kiosko",
         }),
       });
+      
+      playHikChime(type);
+      playVoice(type === "Entrada" ? "Entrada registrada" : "Salida registrada");
       
       setMessage(type === "Entrada" ? "Entrada registrada" : "Salida registrada");
       setSuccessName(identifiedUser.name);
@@ -476,6 +476,8 @@ export default function KioskPage() {
     } catch (e: any) {
       console.log("Error registro:", e);
       toast("Error: " + (e?.message || "Error al registrar"), "error");
+      setMessage("");
+      setProcessing(false);
     }
   }
 
@@ -540,8 +542,8 @@ export default function KioskPage() {
           <p style={{color:"#9cffb5",fontSize:20,marginBottom:12,fontWeight:"bold"}}>{identifiedUser.name}</p>
           <p style={{color:"#5ef2ff",fontSize:11,marginBottom:12}}>GPS: {locationReady ? "OK" : "..."}</p>
           <div style={{display:"flex",gap:10}}>
-            <button onClick={()=>handleCheckIn("Entrada")} disabled={!locationReady} style={{flex:1,padding:"24px 12px",borderRadius:16,border:"2px solid rgba(94,242,255,0.4)",background:locationReady?"linear-gradient(135deg, rgba(94,242,255,0.2), rgba(156,255,181,0.1))":"#1a2a3a",color:"white",fontSize:18,fontWeight:"bold",opacity:locationReady?1:0.5}}>ENTRADA</button>
-            <button onClick={()=>handleCheckIn("Salida")} disabled={!locationReady} style={{flex:1,padding:"24px 12px",borderRadius:16,border:"2px solid rgba(94,242,255,0.2)",background:locationReady?"#0a1526":"#1a2a3a",color:"white",fontSize:18,fontWeight:"bold",opacity:locationReady?1:0.5}}>SALIDA</button>
+            <button onClick={()=>handleCheckIn("Entrada")} disabled={!locationReady || processing} style={{flex:1,padding:"24px 12px",borderRadius:16,border:"2px solid rgba(94,242,255,0.4)",background:!locationReady||processing?"#1a2a3a":"linear-gradient(135deg, rgba(94,242,255,0.2), rgba(156,255,181,0.1))",color:"white",fontSize:18,fontWeight:"bold",opacity:locationReady&&!processing?1:0.5}}>{processing?"PROCESANDO...":"ENTRADA"}</button>
+            <button onClick={()=>handleCheckIn("Salida")} disabled={!locationReady || processing} style={{flex:1,padding:"24px 12px",borderRadius:16,border:"2px solid rgba(94,242,255,0.2)",background:!locationReady||processing?"#1a2a3a":"#0a1526",color:"white",fontSize:18,fontWeight:"bold",opacity:locationReady&&!processing?1:0.5}}>{processing?"PROCESANDO...":"SALIDA"}</button>
           </div>
         </div>
       </main>
