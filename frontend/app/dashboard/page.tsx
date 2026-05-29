@@ -120,7 +120,7 @@ export default function DashboardPage() {
   const [tendencias, setTendencias] = useState<any[]>([]);
   const [sucursalesAnalytics, setSucursalesAnalytics] = useState<any[]>([]);
 
-  const [loading, setLoading] = useState({ cards: true, ranking: true, charts: true, sucursales: true, map: true });
+  const [loading, setLoading] = useState({ cards: true, ranking: true, charts: true, sucursales: true });
 
   useEffect(() => { setMounted(true); }, []);
   useEffect(() => { if (mounted && !user) router.push("/login"); }, [mounted, user, router]);
@@ -165,7 +165,6 @@ export default function DashboardPage() {
       .then(r => { setSucursalesAnalytics(r.data || []); setLoading(prev => ({ ...prev, sucursales: false })); })
       .catch(() => setLoading(prev => ({ ...prev, sucursales: false })));
 
-    setLoading(prev => ({ ...prev, map: true }));
   }
 
   useEffect(() => {
@@ -482,19 +481,20 @@ export default function DashboardPage() {
         </section>
       ) : null}
 
-      <MapSection branches={branches} records={records} loading={loading.map} onLoaded={() => setLoading(prev => ({ ...prev, map: false }))} />
+      <MapSection branches={branches} records={records} />
 
     </main>
   );
 }
 
-function MapSection({ branches, records, loading, onLoaded }: { branches: Branch[]; records: RecordItem[]; loading: boolean; onLoaded: () => void }) {
+function MapSection({ branches, records }: { branches: Branch[]; records: RecordItem[] }) {
   const mapRef = useRef<HTMLDivElement>(null);
-  const [mapReady, setMapReady] = useState(false);
+  const mapInitRef = useRef(false);
+  const [mapLoading, setMapLoading] = useState(true);
 
   useEffect(() => {
-    if (!branches.length || mapReady) return;
-    setMapReady(true);
+    if (!branches.length || mapInitRef.current || !mapRef.current) return;
+    mapInitRef.current = true;
     const script = document.createElement("script");
     script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
     script.async = true;
@@ -503,16 +503,15 @@ function MapSection({ branches, records, loading, onLoaded }: { branches: Branch
       link.rel = "stylesheet";
       link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
       document.head.appendChild(link);
-      setTimeout(() => {
-        if (!mapRef.current || (window as any).L === undefined) return;
+      const check = () => {
+        if (!mapRef.current || (window as any).L === undefined) return setTimeout(check, 100);
         const L = (window as any).L;
         const avgLat = branches.reduce((a, b) => a + (b.lat || 0), 0) / branches.length;
         const avgLon = branches.reduce((a, b) => a + (b.lon || 0), 0) / branches.length;
         const map = L.map(mapRef.current).setView([avgLat || 19.4326, avgLon || -99.1332], 10);
         L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
-          subdomains: "abcd",
-          maxZoom: 19,
+          subdomains: "abcd", maxZoom: 19,
         }).addTo(map);
         const today = new Date().toISOString().split("T")[0];
         branches.forEach(branch => {
@@ -522,23 +521,21 @@ function MapSection({ branches, records, loading, onLoaded }: { branches: Branch
           const icon = L.divIcon({
             className: "custom-marker",
             html: `<div style="width:36px;height:36px;background:${hasRetardo?"linear-gradient(135deg,#ff8c9e,#d04aff)":"linear-gradient(135deg,#5ef2ff,#9cffb5)"};border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 16px ${hasRetardo?"rgba(255,140,158,0.6)":"rgba(94,242,255,0.6)"};font-size:13px;font-weight:bold;color:#0a1526;border:2px solid ${hasRetardo?"#ff8c9e":"#5ef2ff"}">${br.length}</div>`,
-            iconSize: [36, 36],
-            iconAnchor: [18, 18],
+            iconSize: [36, 36], iconAnchor: [18, 18],
           });
-          const marker = L.marker([branch.lat, branch.lon], { icon }).addTo(map);
-          marker.bindPopup(`<div style="color:#0a1526;min-width:140px"><strong style="font-size:13px">${branch.nombre}</strong><br/><span style="font-size:11px">Entradas: ${br.filter(r=>r.tipo==="Entrada").length} | Salidas: ${br.filter(r=>r.tipo==="Salida").length}</span></div>`);
+          L.marker([branch.lat, branch.lon], { icon }).addTo(map)
+            .bindPopup(`<div style="color:#0a1526;min-width:140px"><strong style="font-size:13px">${branch.nombre}</strong><br/><span style="font-size:11px">Entradas: ${br.filter(r=>r.tipo==="Entrada").length} | Salidas: ${br.filter(r=>r.tipo==="Salida").length}</span></div>`);
         });
-        onLoaded();
-      }, 500);
+        setMapLoading(false);
+      };
+      setTimeout(check, 300);
     };
     document.body.appendChild(script);
     return () => {
       const existing = document.querySelector('[src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"]');
       if (existing) existing.remove();
     };
-  }, [branches]);
-
-  if (loading) return <SectionSkeleton height={350} />;
+  }, [branches, records]);
 
   return (
     <section className="glass" style={{padding:20,marginBottom:24}}>
@@ -553,7 +550,10 @@ function MapSection({ branches, records, loading, onLoaded }: { branches: Branch
           <span style={{color:"#9bb4ca",fontSize:11}}>Con retardos</span>
         </div>
       </div>
-      <div ref={mapRef} style={{height:400,borderRadius:14,overflow:"hidden",border:"1px solid rgba(94,242,255,0.2)"}} />
+      <div style={{position:"relative"}}>
+        <div ref={mapRef} style={{height:400,borderRadius:14,overflow:"hidden",border:"1px solid rgba(94,242,255,0.2)"}} />
+        {mapLoading && <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(10,21,38,0.8)",borderRadius:14}}><div className="skeleton" style={{width:"80%",height:300,borderRadius:12}} /></div>}
+      </div>
     </section>
   );
 }

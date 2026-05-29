@@ -404,9 +404,11 @@ export default function KioskPage() {
       }
       // Came from face match → proceed to check-in
       setIdentifiedUser(res.user);
+      setProcessing(false);
     } catch (e: any) {
       console.error("Error registering face:", e);
       toast("Error al registrar: " + (e?.message || e), "error");
+      setProcessing(false);
     }
     setFaceRegSaving(false);
   }
