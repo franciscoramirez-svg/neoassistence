@@ -1,12 +1,19 @@
-const CACHE = "neoassistence-v2";
-const STATIC_CACHE = "neoassistence-static-v2";
+const CACHE = "neoassistence-v3";
+const STATIC_CACHE = "neoassistence-static-v3";
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(clients.claim());
+  event.waitUntil(
+    Promise.all([
+      clients.claim(),
+      caches.keys().then(keys => Promise.all(keys.map(k => {
+        if (k !== CACHE && k !== STATIC_CACHE) return caches.delete(k);
+      }))),
+    ])
+  );
 });
 
 async function cacheThenReturn(request, res, cacheName) {
