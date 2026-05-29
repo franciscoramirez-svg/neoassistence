@@ -13,3 +13,9 @@ backend/.env.*
 dist/
 build/
 .DS_Store
+
+# logs
+backend_std*.log
+backend_stderr*.log
+backend_stdout*.log
+frontend/tsconfig.tsbuildinfo
