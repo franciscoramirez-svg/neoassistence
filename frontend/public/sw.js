@@ -1,5 +1,5 @@
-const CACHE = "neoassistence-v3";
-const STATIC_CACHE = "neoassistence-static-v3";
+const CACHE = "neoassistence-v4";
+const STATIC_CACHE = "neoassistence-static-v4";
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
