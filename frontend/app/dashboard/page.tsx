@@ -210,7 +210,7 @@ export default function DashboardPage() {
   ).map(([name, value]) => ({ name, value }));
 
   const barData = daysInRange.map(d => {
-    const dayRecords = records.filter(r => r.fecha_hora?.startsWith(d));
+    const dayRecords = filteredRecords.filter(r => r.fecha_hora?.startsWith(d));
     return { date: d.slice(5), Entradas: dayRecords.filter(r => r.tipo === "Entrada").length, Salidas: dayRecords.filter(r => r.tipo === "Salida").length };
   });
 
@@ -416,7 +416,7 @@ export default function DashboardPage() {
 
       {loading.sucursales ? (
         <SectionSkeleton height={200} />
-      ) : sucursalesAnalytics.length > 0 ? (
+      ) : !filterBranch && sucursalesAnalytics.length > 0 ? (
         <section className="glass" style={{padding:20,marginBottom:20}}>
           <h2 style={{marginTop:0,marginBottom:14,fontSize:16}}>Sucursales</h2>
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(260px, 1fr))",gap:14}}>
@@ -467,7 +467,7 @@ export default function DashboardPage() {
         </section>
       ) : null}
 
-      <MapSection branches={branches} records={records} />
+      {!filterBranch && <MapSection branches={branches} records={records} />}
 
     </main>
   );
