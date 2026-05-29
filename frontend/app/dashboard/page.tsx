@@ -129,7 +129,8 @@ export default function DashboardPage() {
 
   async function loadDashboardData() {
     const params = `?desde=${filterDesde}&hasta=${filterHasta}${filterBranch ? `&sucursal_id=${filterBranch}` : ""}`;
-    const rankingParams = `?periodo_inicio=${filterDesde}&periodo_fin=${filterHasta}`;
+    const rankingParams = `?periodo_inicio=${filterDesde}&periodo_fin=${filterHasta}${filterBranch ? `&sucursal_id=${filterBranch}` : ""}`;
+    const branchParam = filterBranch ? `&sucursal_id=${filterBranch}` : "";
 
     setLoading(prev => ({ ...prev, cards: true }));
     apiRequest<{ data: { items: RecordItem[] } }>(`/records${params}`)
@@ -143,8 +144,8 @@ export default function DashboardPage() {
 
     setLoading(prev => ({ ...prev, charts: true }));
     Promise.all([
-      apiRequest<{ data: any[] }>("/analytics/retardos-mensuales").then(r => r.data || []).catch(() => []),
-      apiRequest<{ data: any[] }>("/analytics/tendencias").then(r => r.data || []).catch(() => []),
+      apiRequest<{ data: any[] }>(`/analytics/retardos-mensuales${branchParam}`).then(r => r.data || []).catch(() => []),
+      apiRequest<{ data: any[] }>(`/analytics/tendencias${branchParam}`).then(r => r.data || []).catch(() => []),
     ]).then(([ret, tend]) => {
       setRetardosMensuales(ret);
       setTendencias(tend);
@@ -216,7 +217,7 @@ export default function DashboardPage() {
 
   const topRank = ranking.slice(0, 5);
 
-  const exportUrl = `${apiBase}/analytics/ranking/export/excel?periodo_inicio=${filterDesde}&periodo_fin=${filterHasta}`;
+  const exportUrl = `${apiBase}/analytics/ranking/export/excel?periodo_inicio=${filterDesde}&periodo_fin=${filterHasta}${filterBranch ? `&sucursal_id=${filterBranch}` : ""}`;
 
   return (
     <main className="page-shell">

@@ -1,0 +1,10 @@
+[CRON] Auto-close: 0 cerrados, 0 errores
+[CRON] Alertas enviadas: 2
+INFO:     127.0.0.1:56784 - "GET /api/reports/config HTTP/1.1" 200 OK
+[AUTO-REPORTE] Email enviado a rafrancisco16@hotmail.com
+INFO:     127.0.0.1:61426 - "POST /api/reports/send?force=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61431 - "GET /api/reports/config HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63771 - "GET /api/reports/config HTTP/1.1" 200 OK
+[AUTO-REPORTE] Email enviado a francisco.ramirez@neomotic.com
+INFO:     127.0.0.1:57612 - "POST /api/reports/send?force=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51836 - "GET /api/reports/config HTTP/1.1" 200 OK

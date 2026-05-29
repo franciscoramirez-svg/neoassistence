@@ -10,18 +10,22 @@ router = APIRouter(tags=["analytics"])
 
 MONTHS_ES = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"]
 
-def _get_records(supabase, desde: str, hasta: str):
-    return (supabase.table("registros").select("*")
-        .gte("fecha_hora", f"{desde}T00:00:00")
-        .lte("fecha_hora", f"{hasta}T23:59:59")
-        .execute().data or [])
+def _get_records(supabase, desde: str, hasta: str, sucursal_id: str = None):
+    q = supabase.table("registros").select("*").gte("fecha_hora", f"{desde}T00:00:00").lte("fecha_hora", f"{hasta}T23:59:59")
+    if sucursal_id:
+        q = q.eq("sucursal_id", sucursal_id)
+    return q.execute().data or []
 
 def _get_empleados(supabase):
     return supabase.table("empleados").select("id,nombre,sucursal_id").execute().data or []
 
+def _get_empleados_por_sucursal(supabase, sucursal_id: str) -> set:
+    emps = supabase.table("empleados").select("nombre").eq("sucursal_id", sucursal_id).execute().data or []
+    return {e["nombre"] for e in emps}
+
 
 @router.get("/analytics/ranking")
-def ranking_puntualidad(periodo_inicio: Optional[str] = None, periodo_fin: Optional[str] = None):
+def ranking_puntualidad(periodo_inicio: Optional[str] = None, periodo_fin: Optional[str] = None, sucursal_id: Optional[str] = None):
     supabase = get_supabase()
     hoy = date.today()
     if not periodo_inicio:
@@ -29,7 +33,7 @@ def ranking_puntualidad(periodo_inicio: Optional[str] = None, periodo_fin: Optio
     if not periodo_fin:
         periodo_fin = hoy.isoformat()
 
-    records = _get_records(supabase, periodo_inicio, periodo_fin)
+    records = _get_records(supabase, periodo_inicio, periodo_fin, sucursal_id)
     emp_map = {e["nombre"]: e for e in _get_empleados(supabase)}
 
     emp_stats = defaultdict(lambda: {"total": 0, "retardos": 0, "retardo_min": 0, "a_tiempo": 0})
@@ -71,15 +75,15 @@ def ranking_puntualidad(periodo_inicio: Optional[str] = None, periodo_fin: Optio
 
 
 @router.get("/analytics/retardos-mensuales")
-def retardos_mensuales(anio: Optional[int] = None):
+def retardos_mensuales(anio: Optional[int] = None, sucursal_id: Optional[str] = None):
     if not anio:
         anio = date.today().year
     supabase = get_supabase()
 
-    records = (supabase.table("registros").select("*")
-        .gte("fecha_hora", f"{anio}-01-01T00:00:00")
-        .lte("fecha_hora", f"{anio}-12-31T23:59:59")
-        .execute().data or [])
+    q = supabase.table("registros").select("*").gte("fecha_hora", f"{anio}-01-01T00:00:00").lte("fecha_hora", f"{anio}-12-31T23:59:59")
+    if sucursal_id:
+        q = q.eq("sucursal_id", sucursal_id)
+    records = q.execute().data or []
 
     meses = defaultdict(lambda: {"total": 0, "retardos": 0})
     for r in records:
@@ -107,12 +111,12 @@ def retardos_mensuales(anio: Optional[int] = None):
 
 
 @router.get("/analytics/tendencias")
-def tendencias(meses: Optional[int] = 6):
+def tendencias(meses: Optional[int] = 6, sucursal_id: Optional[str] = None):
     supabase = get_supabase()
     hoy = date.today()
     desde = hoy - timedelta(days=meses * 31)
 
-    records = _get_records(supabase, desde.isoformat(), hoy.isoformat())
+    records = _get_records(supabase, desde.isoformat(), hoy.isoformat(), sucursal_id)
 
     meses_data = defaultdict(lambda: {"total": 0, "entradas": 0, "salidas": 0, "a_tiempo": 0, "retardos": 0, "permisos": 0})
     for r in records:
@@ -243,9 +247,9 @@ def historial_puntualidad(empleado: str, meses: Optional[int] = 12):
 
 
 @router.get("/analytics/ranking/export/excel")
-def export_ranking_excel(periodo_inicio: Optional[str] = None, periodo_fin: Optional[str] = None):
+def export_ranking_excel(periodo_inicio: Optional[str] = None, periodo_fin: Optional[str] = None, sucursal_id: Optional[str] = None):
     from openpyxl import Workbook
-    data = ranking_puntualidad(periodo_inicio, periodo_fin)
+    data = ranking_puntualidad(periodo_inicio, periodo_fin, sucursal_id)
     ranking = data["data"]
 
     wb = Workbook()

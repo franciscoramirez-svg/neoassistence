@@ -1,6 +1,1 @@
-INFO:     Will watch for changes in these directories: ['C:\\Users\\gabri\\repo\\neoassistence\\backend']
-INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
-INFO:     Started reloader process [26428] using WatchFiles
-INFO:     Started server process [32380]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
+C:\Users\gabri\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\python.exe: can't open file 'C:\\Users\\gabri\\repo\\neoassistence\\backend\\main.py': [Errno 2] No such file or directory
