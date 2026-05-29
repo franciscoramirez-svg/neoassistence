@@ -89,7 +89,9 @@ def resolve_incidencia(inc_id: str, payload: IncidenciaResolve):
         send_push_notification(
             current["empleado_nombre"],
             f"Incidencia {payload.estatus}",
-            f"Tu incidencia fue {payload.estatus}. {payload.admin_comentario}" if payload.admin_comentario else f"Tu incidencia fue {payload.estatus}"
+            f"Tu incidencia fue {payload.estatus}. {payload.admin_comentario}" if payload.admin_comentario else f"Tu incidencia fue {payload.estatus}",
+            notif_type="incidencia",
+            target="employee",
         )
     except:
         pass

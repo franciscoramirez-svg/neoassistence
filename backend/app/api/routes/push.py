@@ -18,6 +18,11 @@ def subscribe(payload: SubscriptionRequest):
     supabase = get_supabase()
     existing = supabase.table("push_subscriptions").select("id").eq("endpoint", payload.endpoint).execute()
     if existing.data:
+        if existing.data[0].get("employee_id") != payload.employee_id or existing.data[0].get("employee_name") != payload.employee_name:
+            supabase.table("push_subscriptions").update({
+                "employee_id": payload.employee_id,
+                "employee_name": payload.employee_name,
+            }).eq("id", existing.data[0]["id"]).execute()
         return {"ok": True, "message": "Ya suscrito"}
     supabase.table("push_subscriptions").insert({
         "endpoint": payload.endpoint,
@@ -36,19 +41,44 @@ def unsubscribe(payload: dict):
     supabase.table("push_subscriptions").delete().eq("endpoint", endpoint).execute()
     return {"ok": True}
 
-def send_push_notification(employee_name: str, title: str, body: str):
-    """Send push notification to all admin/supervisor subscriptions"""
+def _get_admin_roles():
+    return ["admin", "supervisor"]
+
+def _get_empleados_roles(supabase) -> dict:
+    """Returns dict of employee_name -> role"""
+    emps = supabase.table("empleados").select("nombre,rol").execute().data or []
+    return {e["nombre"]: (e.get("rol") or "employee") for e in emps}
+
+def send_push_notification(employee_name: str, title: str, body: str, notif_type: str = "general", target: str = "admin"):
+    """
+    Send push notification.
+    target: "admin" (admins/supervisors only), "employee" (admins + employee), "all" (everyone)
+    """
     supabase = get_supabase()
-    subs = supabase.table("push_subscriptions").select("*").execute()
-    subs = subs.data or []
+    subs = supabase.table("push_subscriptions").select("*").execute().data or []
+    if not subs:
+        return
+    admin_roles = _get_admin_roles()
+    empleados_rol = _get_empleados_roles(supabase)
+
+    notif_data = json.dumps({"title": title, "body": body, "type": notif_type, "employee": employee_name})
+
     for sub in subs:
         try:
+            sub_name = sub.get("employee_name", "")
+            role = empleados_rol.get(sub_name, "employee")
+
+            if target == "admin" and role not in admin_roles:
+                continue
+            if target == "employee" and role not in admin_roles and sub_name != employee_name:
+                continue
+
             webpush(
                 subscription_info={
                     "endpoint": sub["endpoint"],
                     "keys": sub["keys"],
                 },
-                data=json.dumps({"title": title, "body": body}),
+                data=notif_data,
                 vapid_private_key=settings.vapid_private_key,
                 vapid_claims={"sub": "mailto:francisco.ramirez@neomotic.com"},
             )

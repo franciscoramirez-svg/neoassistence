@@ -299,7 +299,9 @@ def check_retardo_thresholds():
                 send_push_notification(
                     emp_name,
                     f"Alerta: {count} retardos",
-                    f"{emp_name} tiene {count} retardos en la última semana."
+                    f"{emp_name} tiene {count} retardos en la última semana.",
+                    notif_type="alerta",
+                    target="admin",
                 )
             except:
                 pass

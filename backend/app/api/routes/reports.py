@@ -61,6 +61,11 @@ def send_report(background_tasks: BackgroundTasks, force: str = "false"):
                 cfg = get_report_config()
                 cfg.ultimo_envio = datetime.now().isoformat()
                 save_report_config(cfg)
+                try:
+                    from app.api.routes.push import send_push_notification
+                    send_push_notification("Sistema", "Reporte enviado", f"Reporte del {report['fecha']} enviado a {config.email_destino}", notif_type="reporte", target="admin")
+                except:
+                    pass
         background_tasks.add_task(_send)
         return {"ok": True, "message": "Enviando reporte en segundo plano...", "data": report}
     return run_auto_report()

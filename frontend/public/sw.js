@@ -55,15 +55,46 @@ self.addEventListener("fetch", (event) => {
   );
 });
 
+const ICONS = {
+  registro: "/icons/icon-192.png",
+  retardo: "/icons/icon-192.png",
+  incidencia: "/icons/icon-192.png",
+  permiso: "/icons/icon-192.png",
+  alerta: "/icons/icon-192.png",
+  reporte: "/icons/icon-192.png",
+};
+
+const ACTIONS = {
+  registro: [{ action: "view", title: "Ver registro" }],
+  incidencia: [{ action: "view", title: "Ver incidencia" }],
+  permiso: [{ action: "view", title: "Ver permiso" }],
+  alerta: [{ action: "dashboard", title: "Dashboard" }],
+};
+
+const CLICK_ROUTES = {
+  registro: "/kiosko",
+  incidencia: "/incidencias",
+  permiso: "/permisos",
+  alerta: "/dashboard",
+  reporte: "/reportes-auto",
+};
+
 self.addEventListener("push", (event) => {
   if (!event.data) return;
   try {
     const data = event.data.json();
+    const ntype = data.type || "general";
+    const icon = ICONS[ntype] || "/icons/icon-192.png";
+    const actions = ACTIONS[ntype] || [];
     const options = {
       body: data.body,
-      icon: "/icons/icon-192.png",
+      icon,
       badge: "/icons/icon-192.png",
-      vibrate: [200, 100, 200],
+      vibrate: ntype === "alerta" ? [300, 150, 300, 150, 300] : [200, 100, 200],
+      data: { type: ntype, employee: data.employee },
+      actions,
+      tag: ntype,
+      renotify: ntype === "alerta",
     };
     event.waitUntil(self.registration.showNotification(data.title, options));
   } catch {}
@@ -71,5 +102,21 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  event.waitUntil(clients.openWindow("/kiosko"));
+  const ndata = event.notification.data || {};
+  const ntype = ndata.type || "general";
+  const route = CLICK_ROUTES[ntype] || "/kiosko";
+
+  if (event.action === "dashboard") {
+    event.waitUntil(clients.openWindow("/dashboard"));
+    return;
+  }
+
+  event.waitUntil(
+    clients.matchAll({ type: "window" }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url.includes(route) && "focus" in client) return client.focus();
+      }
+      if (clients.openWindow) return clients.openWindow(route);
+    })
+  );
 });

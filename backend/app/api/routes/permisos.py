@@ -77,7 +77,9 @@ def resolve_permiso(perm_id: str, payload: PermisoResolve):
         send_push_notification(
             current["empleado_nombre"],
             f"Permiso {payload.estatus}",
-            f"Tu permiso fue {payload.estatus}. {payload.admin_comentario}" if payload.admin_comentario else f"Tu permiso fue {payload.estatus}"
+            f"Tu permiso fue {payload.estatus}. {payload.admin_comentario}" if payload.admin_comentario else f"Tu permiso fue {payload.estatus}",
+            notif_type="permiso",
+            target="employee",
         )
     except:
         pass

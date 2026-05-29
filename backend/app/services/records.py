@@ -175,14 +175,18 @@ def create_record(payload: dict) -> tuple[bool, str, dict | None]:
     response = get_supabase().table("registros").insert(record_payload).execute()
     created = response.data[0] if response.data else None
     
-    # Send push notification
+    # Send push notification to employee + admins
     try:
         from app.api.routes.push import send_push_notification
         mov = payload["movement_type"]
+        notif_type = "retardo" if "retardo" in status.lower() else "registro"
+        target = "all" if source.startswith("web") else "employee"
         send_push_notification(
             employee["nombre"],
             f"Registro {mov}",
-            f"{mov} registrada a las {now_mx.strftime('%H:%M')} - {status}"
+            f"{mov} a las {now_mx.strftime('%H:%M')} - {status}",
+            notif_type=notif_type,
+            target=target,
         )
     except:
         pass
