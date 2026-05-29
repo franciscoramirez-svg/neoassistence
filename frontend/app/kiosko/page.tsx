@@ -147,7 +147,9 @@ export default function KioskPage() {
   const [faceInFrame, setFaceInFrame] = useState(false);
   const [successName, setSuccessName] = useState("");
   const [livenessState, setLivenessState] = useState<"idle" | "watching">("idle");
-  
+  const [flashGreen, setFlashGreen] = useState(false);
+  const [matchConfidence, setMatchConfidence] = useState<number | null>(null);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const faceDescriptorsRef = useRef<{id: string; name: string; pin: string; descriptor: number[]}[]>([]);
@@ -315,10 +317,13 @@ export default function KioskPage() {
         
         if (bestMatch && bestMatch.distance < 0.45 && (!secondBest || bestMatch.distance / secondBest.distance < 0.8)) {
           console.log("Match:", bestMatch.name, bestMatch.distance);
+          setMatchConfidence(Math.round((1 - bestMatch.distance) * 100));
           playVoice("Bienvenido " + bestMatch.name);
           setTimeout(() => authenticateUser(bestMatch.name, true), 600);
         } else {
-          setFaceStatus(bestMatch && bestMatch.distance < 0.7 ? "Rostro desconocido" : "Buscando...");
+          const conf = bestMatch ? Math.round((1 - bestMatch.distance) * 100) : 0;
+          setMatchConfidence(bestMatch ? conf : null);
+          setFaceStatus(bestMatch && bestMatch.distance < 0.7 ? `Rostro desconocido (${conf}%)` : "Buscando...");
           scheduleDetect(200);
           return;
         }
@@ -465,11 +470,14 @@ export default function KioskPage() {
       setMessage(type === "Entrada" ? "Entrada registrada" : "Salida registrada");
       setSuccessName(identifiedUser.name);
       setSuccess(true);
+      setFlashGreen(true);
+      setTimeout(() => setFlashGreen(false), 600);
       
       setTimeout(() => {
         setIdentifiedUser(null);
         setSuccess(false);
         setProcessing(false);
+        setMatchConfidence(null);
         resetLiveness();
         loadDescriptors();
       }, 3500);
@@ -497,19 +505,21 @@ export default function KioskPage() {
 
   if (success && message) {
     return (
-    <main className="page-shell" style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100dvh",padding:"12px 12px 24px"}}>
+    <main className="page-shell" style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100dvh",padding:"12px 12px 24px",position:"relative",overflow:"hidden"}}>
+        {flashGreen && <div style={{position:"fixed",inset:0,background:"radial-gradient(circle at center, rgba(156,255,181,0.4), transparent 70%)",zIndex:200,pointerEvents:"none",animation:"flashFade 0.6s ease-out"}} />}
         <NeonClock />
         <div style={{textAlign:"center",padding:32,animation:"fadeInUp 0.6s ease-out"}}>
           <div style={{
             width:120,height:120,borderRadius:"50%",
-            background:"radial-gradient(circle at 30% 30%, rgba(156,255,181,0.3), rgba(94,242,255,0.1))",
+            background:"radial-gradient(circle at 30% 30%, rgba(156,255,181,0.4), rgba(94,242,255,0.15))",
             display:"flex",alignItems:"center",justifyContent:"center",
             margin:"0 auto 24px",
             animation:"scaleBounce 0.5s ease-out 0.1s both",
+            boxShadow:"0 0 60px rgba(156,255,181,0.3)",
           }}>
-            <span style={{fontSize:60,color:"#9cffb5",filter:"drop-shadow(0 0 12px rgba(156,255,181,0.6))"}}>&#10003;</span>
+            <span style={{fontSize:60,color:"#9cffb5",filter:"drop-shadow(0 0 20px rgba(156,255,181,0.8))"}}>&#10003;</span>
           </div>
-          <h1 style={{color:"#9cffb5",fontSize:28,marginBottom:4,textShadow:"0 0 20px rgba(156,255,181,0.4)"}}>{message.toUpperCase()}</h1>
+          <h1 style={{color:"#9cffb5",fontSize:28,marginBottom:4,textShadow:"0 0 30px rgba(156,255,181,0.5)"}}>{message.toUpperCase()}</h1>
           <p style={{color:"white",fontSize:18,marginBottom:4,opacity:0.9}}>{successName}</p>
           <img src="/images/logo_modo_oscuro.fw.png" alt="NEOMOTIC" style={{height:24,opacity:0.6,marginTop:8}} />
         </div>
@@ -517,6 +527,7 @@ export default function KioskPage() {
           @keyframes fadeInUp { from { opacity:0; transform:translateY(30px) } to { opacity:1; transform:translateY(0) } }
           @keyframes scaleBounce { 0% { transform:scale(0) } 60% { transform:scale(1.15) } 100% { transform:scale(1) } }
           @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.4 } }
+          @keyframes flashFade { 0% { opacity:1 } 100% { opacity:0 } }
         `}</style>
       </main>
     );
@@ -535,15 +546,27 @@ export default function KioskPage() {
   if (identifiedUser && !showFaceReg) {
     return (
       <main className="page-shell" style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100dvh",padding:16}}>
+        <style>{`@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}@keyframes progressShrink{0%{width:100%}100%{width:0%}}`}</style>
         <NeonClock />
         <div style={{width:"100%",maxWidth:360}}>
-          <button onClick={()=>{setIdentifiedUser(null);setProcessing(false);resetLiveness();loadDescriptors();}} style={{position:"fixed",top:12,right:12,padding:"8px 12px",borderRadius:8,border:"1px solid rgba(208,138,255,0.2)",background:"transparent",color:"#9bb4ca",fontSize:12}}>Cambiar</button>
+          <button onClick={()=>{setIdentifiedUser(null);setProcessing(false);setMatchConfidence(null);resetLiveness();loadDescriptors();}} style={{position:"fixed",top:12,right:12,padding:"8px 12px",borderRadius:8,border:"1px solid rgba(208,138,255,0.2)",background:"transparent",color:"#9bb4ca",fontSize:12}}>Cambiar</button>
           <h1 style={{color:"#5ef2ff",fontSize:18,marginBottom:6}}>REGISTRO</h1>
-          <p style={{color:"#9cffb5",fontSize:20,marginBottom:12,fontWeight:"bold"}}>{identifiedUser.name}</p>
+          <p style={{color:"#9cffb5",fontSize:20,marginBottom:8,fontWeight:"bold"}}>{identifiedUser.name}</p>
           <p style={{color:"#5ef2ff",fontSize:11,marginBottom:12}}>GPS: {locationReady ? "OK" : "..."}</p>
+          {processing && (
+            <div style={{width:"100%",height:4,background:"rgba(255,255,255,0.1)",borderRadius:2,marginBottom:12,overflow:"hidden"}}>
+              <div style={{width:"100%",height:"100%",background:"linear-gradient(90deg, #5ef2ff, #9cffb5)",borderRadius:2,animation:"progressShrink 2.5s ease-in-out forwards"}} />
+            </div>
+          )}
           <div style={{display:"flex",gap:10}}>
-            <button onClick={()=>handleCheckIn("Entrada")} disabled={!locationReady || processing} style={{flex:1,padding:"24px 12px",borderRadius:16,border:"2px solid rgba(94,242,255,0.4)",background:!locationReady||processing?"#1a2a3a":"linear-gradient(135deg, rgba(94,242,255,0.2), rgba(156,255,181,0.1))",color:"white",fontSize:18,fontWeight:"bold",opacity:locationReady&&!processing?1:0.5}}>{processing?"PROCESANDO...":"ENTRADA"}</button>
-            <button onClick={()=>handleCheckIn("Salida")} disabled={!locationReady || processing} style={{flex:1,padding:"24px 12px",borderRadius:16,border:"2px solid rgba(94,242,255,0.2)",background:!locationReady||processing?"#1a2a3a":"#0a1526",color:"white",fontSize:18,fontWeight:"bold",opacity:locationReady&&!processing?1:0.5}}>{processing?"PROCESANDO...":"SALIDA"}</button>
+            <button onClick={()=>handleCheckIn("Entrada")} disabled={!locationReady || processing} style={{flex:1,padding:"24px 12px",borderRadius:16,border:"2px solid rgba(94,242,255,0.4)",background:!locationReady||processing?"#1a2a3a":"linear-gradient(135deg, rgba(94,242,255,0.2), rgba(156,255,181,0.1))",color:"white",fontSize:18,fontWeight:"bold",opacity:locationReady&&!processing?1:0.5,position:"relative",overflow:"hidden"}}>
+              {processing && <div style={{position:"absolute",inset:0,background:"linear-gradient(90deg, transparent, rgba(94,242,255,0.2), transparent)",animation:"shimmer 1.5s infinite"}} />}
+              {processing?"PROCESANDO...":"ENTRADA"}
+            </button>
+            <button onClick={()=>handleCheckIn("Salida")} disabled={!locationReady || processing} style={{flex:1,padding:"24px 12px",borderRadius:16,border:"2px solid rgba(94,242,255,0.2)",background:!locationReady||processing?"#1a2a3a":"#0a1526",color:"white",fontSize:18,fontWeight:"bold",opacity:locationReady&&!processing?1:0.5,position:"relative",overflow:"hidden"}}>
+              {processing && <div style={{position:"absolute",inset:0,background:"linear-gradient(90deg, transparent, rgba(94,242,255,0.15), transparent)",animation:"shimmer 1.5s infinite"}} />}
+              {processing?"PROCESANDO...":"SALIDA"}
+            </button>
           </div>
         </div>
       </main>
@@ -566,7 +589,18 @@ export default function KioskPage() {
         </div>
         
         <p style={{color:"#9bb4ca",fontSize:13,textAlign:"center",marginBottom:4}}>
-          {faceStatus || (modelsLoaded ? <div className="skeleton" style={{width:160,height:20,borderRadius:8,display:"inline-block",verticalAlign:"middle"}} /> : "Iniciando modelos...")}
+          {faceStatus ? (
+            <>
+              {faceStatus}
+              {matchConfidence !== null && !identifiedUser && (
+                <span style={{display:"inline-block",marginLeft:8,padding:"1px 8px",borderRadius:10,fontSize:10,
+                  background:matchConfidence > 80 ? "rgba(156,255,181,0.2)" : matchConfidence > 50 ? "rgba(255,204,94,0.2)" : "rgba(255,140,158,0.2)",
+                  color:matchConfidence > 80 ? "#9cffb5" : matchConfidence > 50 ? "#ffcc5e" : "#ff8c9e",
+                  verticalAlign:"middle"
+                }}>{matchConfidence}%</span>
+              )}
+            </>
+          ) : (modelsLoaded ? <div className="skeleton" style={{width:160,height:20,borderRadius:8,display:"inline-block",verticalAlign:"middle"}} /> : "Iniciando modelos...")}
         </p>
         
         {livenessState === "watching" && (
