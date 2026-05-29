@@ -110,9 +110,9 @@ export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [filterBranch, setFilterBranch] = useState("");
-  const [filterDesde, setFilterDesde] = useState("");
-  const [filterHasta, setFilterHasta] = useState("");
-  const [dataCargada, setDataCargada] = useState(false);
+  const todayStr = typeof window === "undefined" ? "" : new Date().toISOString().split("T")[0];
+  const [filterDesde, setFilterDesde] = useState(todayStr);
+  const [filterHasta, setFilterHasta] = useState(todayStr);
 
   const [records, setRecords] = useState<RecordItem[]>([]);
   const [ranking, setRanking] = useState<RankItem[]>([]);
@@ -125,18 +125,9 @@ export default function DashboardPage() {
   useEffect(() => { setMounted(true); }, []);
   useEffect(() => { if (mounted && !user) router.push("/login"); }, [mounted, user, router]);
 
-  const today = new Date().toISOString().split("T")[0];
-  useEffect(() => {
-    if (!filterDesde) setFilterDesde(today);
-    if (!filterHasta) setFilterHasta(today);
-  }, [today]);
-
   const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://192.168.1.85:8000";
 
   async function loadDashboardData() {
-    if (!user || !filterDesde || !filterHasta) return;
-    setDataCargada(false);
-
     const params = `?desde=${filterDesde}&hasta=${filterHasta}${filterBranch ? `&sucursal_id=${filterBranch}` : ""}`;
     const rankingParams = `?periodo_inicio=${filterDesde}&periodo_fin=${filterHasta}`;
 
@@ -164,7 +155,6 @@ export default function DashboardPage() {
     apiRequest<{ data: any[] }>("/analytics/sucursales")
       .then(r => { setSucursalesAnalytics(r.data || []); setLoading(prev => ({ ...prev, sucursales: false })); })
       .catch(() => setLoading(prev => ({ ...prev, sucursales: false })));
-
   }
 
   useEffect(() => {
@@ -172,20 +162,16 @@ export default function DashboardPage() {
       const b = r.data || [];
       setBranches(Array.isArray(b) ? b : []);
     }).catch(() => []);
-  }, []);
-
-  useEffect(() => { if (user && filterDesde && filterHasta) loadDashboardData(); }, [user]);
+    if (user) loadDashboardData();
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
-    const interval = setInterval(loadDashboardData, 30000);
+    const interval = setInterval(loadDashboardData, 60000);
     return () => clearInterval(interval);
   }, [user, filterDesde, filterHasta, filterBranch]);
 
-  useEffect(() => { if (dataCargada) loadDashboardData(); }, [filterDesde, filterHasta, filterBranch]);
-
   const handleFilterApply = () => {
-    setDataCargada(false);
     loadDashboardData();
   };
 
