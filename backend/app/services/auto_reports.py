@@ -1,10 +1,27 @@
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 from pydantic import BaseModel
 from app.services.supabase_client import get_supabase
 from app.core.config import settings
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import time, os
+
+TZ_CDMX = ZoneInfo("America/Mexico_City")
+LOG_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "logs")
+os.makedirs(LOG_DIR, exist_ok=True)
+LOG_FILE = os.path.join(LOG_DIR, "auto_report.log")
+
+def log_msg(msg: str):
+    ts = datetime.now(TZ_CDMX).strftime("%Y-%m-%d %H:%M:%S")
+    line = f"[{ts}] {msg}"
+    print(line)
+    try:
+        with open(LOG_FILE, "a", encoding="utf-8") as f:
+            f.write(line + "\n")
+    except:
+        pass
 
 class ReportConfig(BaseModel):
     id: str = "auto_reporte"
@@ -20,7 +37,7 @@ def get_report_config() -> ReportConfig:
         if result.data:
             return ReportConfig(**result.data[0])
     except Exception as e:
-        print(f"Error getting config: {e}")
+        log_msg(f"Error obteniendo config: {e}")
     return ReportConfig()
 
 def save_report_config(config: ReportConfig) -> bool:
@@ -29,12 +46,12 @@ def save_report_config(config: ReportConfig) -> bool:
         supabase.table("config").upsert(config.model_dump(), on_conflict="id").execute()
         return True
     except Exception as e:
-        print(f"Error saving config: {e}")
+        log_msg(f"Error guardando config: {e}")
         return False
 
 def get_daily_report(date: str = None) -> dict:
     if not date:
-        date = datetime.now().strftime("%Y-%m-%d")
+        date = datetime.now(TZ_CDMX).strftime("%Y-%m-%d")
     
     supabase = get_supabase()
     
@@ -43,7 +60,7 @@ def get_daily_report(date: str = None) -> dict:
         empleados = supabase.table("empleados").select("id,nombre").execute()
         sucursales = supabase.table("sucursales").select("id,nombre").execute()
     except Exception as e:
-        print(f"Error fetching data: {e}")
+        log_msg(f"Error obteniendo datos del reporte: {e}")
         return {"fecha": date, "total": 0, "entradas": 0, "salidas": 0, "retardos": 0, "a_tiempo": 0, "por_empleado": {}, "por_sucursal": {}}
     
     emp_map = {e["id"]: e["nombre"] for e in (empleados.data or [])}
@@ -97,7 +114,7 @@ def get_daily_report(date: str = None) -> dict:
 def send_notification_email(to_email: str, subject: str, body_text: str) -> bool:
     try:
         if not settings.smtp_user or not settings.smtp_password:
-            print(f"[EMAIL] SMTP no configurado. Simulando envío a {to_email}: {subject}")
+            log_msg(f"SMTP no configurado. Simulando notificación a {to_email}: {subject}")
             return True
         msg = MIMEText(body_text, "plain")
         msg["From"] = settings.email_from or settings.smtp_user
@@ -108,30 +125,29 @@ def send_notification_email(to_email: str, subject: str, body_text: str) -> bool
         server.login(settings.smtp_user, settings.smtp_password)
         server.send_message(msg)
         server.quit()
-        print(f"[EMAIL] Notificación enviada a {to_email}: {subject}")
+        log_msg(f"Notificación enviada a {to_email}: {subject}")
         return True
     except Exception as e:
-        print(f"[EMAIL] Error: {e}")
+        log_msg(f"Error notificación email: {e}")
         return False
 
 
-def send_email_report(report: dict, to_email: str) -> bool:
-    try:
-        if not settings.smtp_user or not settings.smtp_password:
-            print(f"[AUTO-REPORTE] SMTP no configurado. Simulando envío a {to_email}")
-            return True
+def send_email_report(report: dict, to_email: str, max_retries: int = 3) -> bool:
+    if not settings.smtp_user or not settings.smtp_password:
+        log_msg(f"SMTP no configurado. Simulando envío a {to_email}")
+        return True
 
-        por_empleado = report.get("por_empleado", {})
-        empleados_html = ""
-        for nombre, vals in sorted(por_empleado.items()):
-            empleados_html += f"<tr><td style='padding:6px 12px;border-bottom:1px solid #eee'>{nombre}</td><td style='padding:6px 12px;border-bottom:1px solid #eee;text-align:center'>{vals.get('entradas',0)}</td><td style='padding:6px 12px;border-bottom:1px solid #eee;text-align:center'>{vals.get('salidas',0)}</td><td style='padding:6px 12px;border-bottom:1px solid #eee;text-align:center;color:#e74c3c'>{vals.get('retardos',0)}</td></tr>"
+    por_empleado = report.get("por_empleado", {})
+    empleados_html = ""
+    for nombre, vals in sorted(por_empleado.items()):
+        empleados_html += f"<tr><td style='padding:6px 12px;border-bottom:1px solid #eee'>{nombre}</td><td style='padding:6px 12px;border-bottom:1px solid #eee;text-align:center'>{vals.get('entradas',0)}</td><td style='padding:6px 12px;border-bottom:1px solid #eee;text-align:center'>{vals.get('salidas',0)}</td><td style='padding:6px 12px;border-bottom:1px solid #eee;text-align:center;color:#e74c3c'>{vals.get('retardos',0)}</td></tr>"
 
-        por_sucursal = report.get("por_sucursal", {})
-        sucursales_html = ""
-        for nombre, vals in sorted(por_sucursal.items()):
-            sucursales_html += f"<tr><td style='padding:6px 12px;border-bottom:1px solid #eee'>{nombre}</td><td style='padding:6px 12px;border-bottom:1px solid #eee;text-align:center'>{vals.get('total',0)}</td><td style='padding:6px 12px;border-bottom:1px solid #eee;text-align:center;color:#e74c3c'>{vals.get('retardos',0)}</td></tr>"
+    por_sucursal = report.get("por_sucursal", {})
+    sucursales_html = ""
+    for nombre, vals in sorted(por_sucursal.items()):
+        sucursales_html += f"<tr><td style='padding:6px 12px;border-bottom:1px solid #eee'>{nombre}</td><td style='padding:6px 12px;border-bottom:1px solid #eee;text-align:center'>{vals.get('total',0)}</td><td style='padding:6px 12px;border-bottom:1px solid #eee;text-align:center;color:#e74c3c'>{vals.get('retardos',0)}</td></tr>"
 
-        html = f"""<!DOCTYPE html>
+    html = f"""<!DOCTYPE html>
 <html><head><meta charset='utf-8'></head><body style='margin:0;padding:0;background:#f4f6f9;font-family:Segoe UI,sans-serif'>
 <table width='100%' cellpadding='0' cellspacing='0'><tr><td align='center' style='padding:30px 15px'>
 <table width='600' cellpadding='0' cellspacing='0' style='background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)'>
@@ -167,39 +183,45 @@ def send_email_report(report: dict, to_email: str) -> bool:
 </td></tr></table>
 </body></html>"""
 
-        body_plain = f"Reporte de Asistencia - {report['fecha']}\n\nTotal: {report['total']} | Entradas: {report['entradas']} | Salidas: {report['salidas']} | Retardos: {report['retardos']} | A tiempo: {report['a_tiempo']}\n\n-- NeoAssistence"
+    body_plain = f"Reporte de Asistencia - {report['fecha']}\n\nTotal: {report['total']} | Entradas: {report['entradas']} | Salidas: {report['salidas']} | Retardos: {report['retardos']} | A tiempo: {report['a_tiempo']}\n\n-- NeoAssistence"
 
-        msg = MIMEMultipart("alternative")
-        msg["From"] = f"NeoAssistence <{settings.email_from or settings.smtp_user}>"
-        msg["To"] = to_email
-        msg["Subject"] = f"Reporte de Asistencia - {report['fecha']}"
-        msg["Reply-To"] = settings.email_from or settings.smtp_user
-        msg.attach(MIMEText(body_plain, "plain"))
-        msg.attach(MIMEText(html, "html"))
+    msg = MIMEMultipart("alternative")
+    msg["From"] = f"NeoAssistence <{settings.email_from or settings.smtp_user}>"
+    msg["To"] = to_email
+    msg["Subject"] = f"Reporte de Asistencia - {report['fecha']}"
+    msg["Reply-To"] = settings.email_from or settings.smtp_user
+    msg.attach(MIMEText(body_plain, "plain"))
+    msg.attach(MIMEText(html, "html"))
 
-        server = smtplib.SMTP(settings.smtp_host, settings.smtp_port)
-        server.starttls()
-        server.login(settings.smtp_user, settings.smtp_password)
-        server.send_message(msg)
-        server.quit()
-
-        print(f"[AUTO-REPORTE] Email enviado a {to_email}")
-        return True
-    except Exception as e:
-        print(f"[AUTO-REPORTE] Error al enviar email: {e}")
-        return False
+    for attempt in range(1, max_retries + 1):
+        try:
+            server = smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=30)
+            server.starttls()
+            server.login(settings.smtp_user, settings.smtp_password)
+            server.send_message(msg)
+            server.quit()
+            log_msg(f"Email enviado a {to_email} (intento {attempt})")
+            return True
+        except Exception as e:
+            log_msg(f"Error envío (intento {attempt}/{max_retries}): {e}")
+            if attempt < max_retries:
+                time.sleep(10)
+    return False
 
 def should_send_today(config: ReportConfig) -> bool:
-    now = datetime.now()
+    now = datetime.now(TZ_CDMX)
     dia_map = {"lun": 0, "mar": 1, "mie": 2, "jue": 3, "vie": 4, "sab": 5, "dom": 6}
     
     if now.weekday() not in [dia_map.get(d, -1) for d in config.dias_activos]:
         return False
     
     if config.ultimo_envio:
-        ultimo = datetime.fromisoformat(config.ultimo_envio)
-        if ultimo.date() == now.date():
-            return False
+        try:
+            ultimo = datetime.fromisoformat(config.ultimo_envio)
+            if ultimo.astimezone(TZ_CDMX).date() == now.date():
+                return False
+        except:
+            pass
     
     hora_envio = datetime.strptime(config.hora_envio, "%H:%M").time()
     if now.time() < hora_envio:
@@ -216,12 +238,20 @@ def run_auto_report() -> dict:
     if not should_send_today(config):
         return {"ok": False, "message": "No hay envío programado para hoy"}
     
+    now = datetime.now(TZ_CDMX)
+    log_msg(f"Iniciando envío de reporte para {now.strftime('%Y-%m-%d')}")
+    
     report = get_daily_report()
+    if report["total"] == 0:
+        log_msg("Sin registros hoy, enviando reporte vacío")
+    
     success = send_email_report(report, config.email_destino)
     
     if success:
-        config.ultimo_envio = datetime.now().isoformat()
+        config.ultimo_envio = datetime.now(TZ_CDMX).isoformat()
         save_report_config(config)
+        log_msg(f"Reporte enviado exitosamente a {config.email_destino}")
         return {"ok": True, "message": "Reporte enviado", "data": report}
     
+    log_msg("Error al enviar reporte después de reintentos")
     return {"ok": False, "message": "Error al enviar reporte"}

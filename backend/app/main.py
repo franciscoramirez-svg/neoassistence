@@ -12,7 +12,7 @@ from app.core.config import settings
 
 
 async def auto_close_loop():
-    """Ejecuta auto-close, alertas de retardos y auto-reporte cada 60 minutos"""
+    """Ejecuta auto-close, alertas de retardos y auto-reporte cada 5 minutos"""
     while True:
         try:
             from app.api.routes.penalizacion import auto_close_open_entries
@@ -36,7 +36,7 @@ async def auto_close_loop():
                 print(f"[CRON] Auto-reporte: {report_result['message']}")
         except Exception as e:
             print(f"[CRON] Auto-reporte error: {e}")
-        await asyncio.sleep(3600)
+        await asyncio.sleep(300)
 
 
 @asynccontextmanager
