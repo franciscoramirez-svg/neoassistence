@@ -32,7 +32,9 @@ const STATUS_COLORS: Record<string, string> = {
   "Retardo": "#ff8c9e",
   "OLVIDO REGISTRO": "#ffcc5e",
   "Permiso": "#5ef2ff",
-  "Justificado": "#d08aff",
+  "NO DIO SALIDA": "#d08aff",
+  "SALIDA ANTICIPADA": "#ff9f43",
+  "SALIDA TEMPRANA": "#ff9f43",
 };
 
 function RankBadge({ pos }: { pos: number }) {
@@ -204,7 +206,7 @@ export default function DashboardPage() {
 
   const statusPie = Object.entries(
     filteredRecords.reduce((acc, r) => {
-      const key = r.estatus?.toLowerCase().includes("retardo") ? "Retardo" : r.estatus === "A Tiempo" ? "A Tiempo" : r.estatus === "Permiso" ? "Permiso" : r.estatus?.includes("OLVIDO") ? "OLVIDO REGISTRO" : "Otros";
+      const key = r.estatus?.toLowerCase().includes("retardo") ? "Retardo" : r.estatus === "A Tiempo" ? "A Tiempo" : r.estatus === "Permiso" ? "Permiso" : r.estatus?.includes("OLVIDO") ? "OLVIDO REGISTRO" : r.estatus === "NO DIO SALIDA" ? "NO DIO SALIDA" : r.estatus?.includes("SALIDA") ? r.estatus : "Otros";
       acc[key] = (acc[key] || 0) + 1;
       return acc;
     }, {} as Record<string, number>)
