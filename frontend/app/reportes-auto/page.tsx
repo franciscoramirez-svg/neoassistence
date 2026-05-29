@@ -108,7 +108,7 @@ export default function ReportesAutoPage() {
         <button onClick={() => { localStorage.removeItem("neoassistence_user"); router.push("/login"); }} style={{background:"none",border:"none",color:"#ff8c9e",cursor:"pointer"}}>Cerrar sesión</button>
       </nav>
 
-      <Link href="/reportes" style={{color:"#5ef2ff",textDecoration:"none",display:"block",marginBottom:16}}>← Volver a Reportes</Link>
+      <Link href="/reportes" style={{color:"#00f2fe",textDecoration:"none",display:"block",marginBottom:16}}>← Volver a Reportes</Link>
 
       <div className="glass" style={{padding:24,marginBottom:24}}>
         <h1 style={{margin:0,fontSize:28}}>📧 Auto-Reporte</h1>
@@ -125,7 +125,7 @@ export default function ReportesAutoPage() {
             value={email} 
             onChange={e => setEmail(e.target.value)} 
             placeholder="correo@empresa.com"
-            style={{width:"100%",maxWidth:400,padding:14,borderRadius:12,border:"1px solid rgba(94,242,255,0.2)",background:"rgba(10,21,38,0.8)",color:"white"}}
+            style={{width:"100%",maxWidth:400,padding:14,borderRadius:12,border:"1px solid rgba(0,242,254,0.2)",background:"rgba(10,21,38,0.8)",color:"white"}}
           />
         </div>
 
@@ -135,7 +135,7 @@ export default function ReportesAutoPage() {
             type="time" 
             value={hora} 
             onChange={e => setHora(e.target.value)}
-            style={{padding:14,borderRadius:12,border:"1px solid rgba(94,242,255,0.2)",background:"rgba(10,21,38,0.8)",color:"white"}}
+            style={{padding:14,borderRadius:12,border:"1px solid rgba(0,242,254,0.2)",background:"rgba(10,21,38,0.8)",color:"white"}}
           />
         </div>
 
@@ -148,9 +148,9 @@ export default function ReportesAutoPage() {
                 onClick={() => toggleDia(d.key)}
                 style={{
                   padding:"10px 16px",borderRadius:10,
-                  border:"1px solid " + (dias.includes(d.key) ? "rgba(94,242,255,0.5)" : "rgba(94,242,255,0.2)"),
-                  background: dias.includes(d.key) ? "rgba(94,242,255,0.2)" : "transparent",
-                  color: dias.includes(d.key) ? "#5ef2ff" : "#9bb4ca",
+                  border:"1px solid " + (dias.includes(d.key) ? "rgba(0,242,254,0.5)" : "rgba(0,242,254,0.2)"),
+                  background: dias.includes(d.key) ? "rgba(0,242,254,0.2)" : "transparent",
+                  color: dias.includes(d.key) ? "#00f2fe" : "#9bb4ca",
                   cursor:"pointer",
                 }}
               >
@@ -161,10 +161,10 @@ export default function ReportesAutoPage() {
         </div>
 
         <div style={{display:"flex",gap:12}}>
-          <button onClick={saveConfig} disabled={saving} style={{padding:"14px 24px",borderRadius:12,border:"1px solid rgba(94,242,255,0.3)",background:saving?"rgba(94,242,255,0.1)":"rgba(94,242,255,0.2)",color:"#5ef2ff",cursor:saving?"not-allowed":"pointer"}}>
+          <button onClick={saveConfig} disabled={saving} style={{padding:"14px 24px",borderRadius:12,border:"1px solid rgba(0,242,254,0.3)",background:saving?"rgba(0,242,254,0.1)":"rgba(0,242,254,0.2)",color:"#00f2fe",cursor:saving?"not-allowed":"pointer"}}>
             {saving ? "Guardando..." : "💾 Guardar"}
           </button>
-          <button onClick={sendReport} style={{padding:"14px 24px",borderRadius:12,border:"1px solid rgba(156,255,181,0.3)",background:"rgba(156,255,181,0.1)",color:"#9cffb5",cursor:"pointer"}}>
+          <button onClick={sendReport} style={{padding:"14px 24px",borderRadius:12,border:"1px solid rgba(179,136,255,0.3)",background:"rgba(179,136,255,0.1)",color:"#b388ff",cursor:"pointer"}}>
             Enviar ahora
           </button>
           <button onClick={async ()=>{setMessage("Enviando...");try{const r=await apiRequest<any>("/reports/send?force=true",{method:"POST"});setMessage(r.message||"Enviado")}catch(e:any){setMessage("Error: "+e?.message)}}} style={{padding:"14px 24px",borderRadius:12,border:"1px solid rgba(255,204,94,0.3)",background:"rgba(255,204,94,0.1)",color:"#ffcc5e",cursor:"pointer"}}>
@@ -172,7 +172,7 @@ export default function ReportesAutoPage() {
           </button>
         </div>
 
-        {message && <p style={{marginTop:16,color:message.includes("✓") ? "#9cffb5" : "#ff8c9e"}}>{message}</p>}
+        {message && <p style={{marginTop:16,color:message.includes("✓") ? "#b388ff" : "#ff8c9e"}}>{message}</p>}
       </div>
 
       <div className="glass" style={{padding:24}}>

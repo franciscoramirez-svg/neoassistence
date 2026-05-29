@@ -59,14 +59,14 @@ export default function EmpleadoPage() {
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
         <h1 style={{color:"#d08aff",fontSize:20,margin:0}}>NEOMOTIC</h1>
         <div style={{display:"flex",gap:8}}>
-          {(isSupervisor || user?.role === "admin") && <button onClick={()=>router.push(goBack)} style={{padding:"8px 14px",borderRadius:8,border:"1px solid rgba(94,242,255,0.3)",background:"transparent",color:"#5ef2ff",fontSize:12}}>Volver</button>}
+          {(isSupervisor || user?.role === "admin") && <button onClick={()=>router.push(goBack)} style={{padding:"8px 14px",borderRadius:8,border:"1px solid rgba(0,242,254,0.3)",background:"transparent",color:"#00f2fe",fontSize:12}}>Volver</button>}
           <button onClick={()=>{localStorage.removeItem("neoassistence_user"); router.push("/login");}} style={{padding:"8px 14px",borderRadius:8,border:"1px solid rgba(255,140,158,0.3)",background:"transparent",color:"#ff8c9e",fontSize:12}}>Salir</button>
         </div>
       </div>
 
-      <div className="glass" style={{padding:24,borderRadius:20,marginBottom:16,background:"linear-gradient(135deg, rgba(94,242,255,0.08), rgba(208,138,255,0.08))",border:"1px solid rgba(94,242,255,0.2)"}}>
+      <div className="glass" style={{padding:24,borderRadius:20,marginBottom:16,background:"linear-gradient(135deg, rgba(0,242,254,0.08), rgba(208,138,255,0.08))",border:"1px solid rgba(0,242,254,0.2)"}}>
         <div style={{display:"flex",gap:20,alignItems:"center"}}>
-          <div style={{width:96,height:96,borderRadius:"50%",background:fotoUrl ? "transparent" : "linear-gradient(135deg, #5ef2ff, #d08aff)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",flexShrink:0,border:"2px solid rgba(94,242,255,0.4)"}}>
+          <div style={{width:96,height:96,borderRadius:"50%",background:fotoUrl ? "transparent" : "linear-gradient(135deg, #00f2fe, #d08aff)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",flexShrink:0,border:"2px solid rgba(0,242,254,0.4)"}}>
             {fotoUrl ? (
               <img src={fotoUrl} alt="foto" style={{width:"100%",height:"100%",objectFit:"cover"}} />
             ) : (
@@ -86,26 +86,26 @@ export default function EmpleadoPage() {
           </div>
           <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
             <span style={{color:"#9bb4ca",fontSize:12}}>Sucursal</span>
-            <span style={{color:"#5ef2ff",fontSize:13}}>{branchName || "No asignada"}</span>
+            <span style={{color:"#00f2fe",fontSize:13}}>{branchName || "No asignada"}</span>
           </div>
         </div>
       </div>
 
       <div className="glass" style={{padding:20,borderRadius:16,marginBottom:16}}>
-        <h2 style={{color:"#5ef2ff",fontSize:15,marginTop:0}}>Credencial Digital</h2>
+        <h2 style={{color:"#00f2fe",fontSize:15,marginTop:0}}>Credencial Digital</h2>
         <p style={{color:"#9bb4ca",fontSize:12,lineHeight:1.5,fontStyle:"italic"}}>
           Identificación oficial laboral. Este documento es propiedad de NEOMOTIC 
           y debe ser presentado ante el personal de seguridad cuando sea requerido.
         </p>
       </div>
 
-      <button onClick={()=>router.push("/historial")} style={{width:"100%",padding:"16px",borderRadius:16,border:"1px solid rgba(94,242,255,0.3)",background:"rgba(94,242,255,0.08)",color:"white",fontSize:15,fontWeight:"bold",cursor:"pointer",marginBottom:8}}>
+      <button onClick={()=>router.push("/historial")} style={{width:"100%",padding:"16px",borderRadius:16,border:"1px solid rgba(0,242,254,0.3)",background:"rgba(0,242,254,0.08)",color:"white",fontSize:15,fontWeight:"bold",cursor:"pointer",marginBottom:8}}>
         📋 Mi historial
       </button>
       <button onClick={()=>router.push("/yts")} style={{width:"100%",padding:"16px",borderRadius:16,border:"1px solid rgba(255,204,94,0.3)",background:"rgba(255,204,94,0.08)",color:"white",fontSize:15,fontWeight:"bold",cursor:"pointer"}}>
         Yo Trabajo Seguro
       </button>
-      <button onClick={()=>router.push("/permisos")} style={{width:"100%",padding:"16px",borderRadius:16,border:"1px solid rgba(156,255,181,0.3)",background:"rgba(156,255,181,0.08)",color:"white",fontSize:15,fontWeight:"bold",cursor:"pointer",marginTop:8}}>
+      <button onClick={()=>router.push("/permisos")} style={{width:"100%",padding:"16px",borderRadius:16,border:"1px solid rgba(179,136,255,0.3)",background:"rgba(179,136,255,0.08)",color:"white",fontSize:15,fontWeight:"bold",cursor:"pointer",marginTop:8}}>
         Permisos y Vacaciones
       </button>
     </main>

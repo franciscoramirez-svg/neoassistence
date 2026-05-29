@@ -508,20 +508,20 @@ export default function KioskPage() {
   if (success && message) {
     return (
     <main className="page-shell" style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100dvh",padding:"12px 12px 24px",position:"relative",overflow:"hidden"}}>
-        {flashGreen && <div style={{position:"fixed",inset:0,background:"radial-gradient(circle at center, rgba(156,255,181,0.4), transparent 70%)",zIndex:200,pointerEvents:"none",animation:"flashFade 0.6s ease-out"}} />}
+        {flashGreen && <div style={{position:"fixed",inset:0,background:"radial-gradient(circle at center, rgba(179,136,255,0.4), transparent 70%)",zIndex:200,pointerEvents:"none",animation:"flashFade 0.6s ease-out"}} />}
         <NeonClock />
         <div style={{textAlign:"center",padding:32,animation:"fadeInUp 0.6s ease-out"}}>
           <div style={{
             width:120,height:120,borderRadius:"50%",
-            background:"radial-gradient(circle at 30% 30%, rgba(156,255,181,0.4), rgba(94,242,255,0.15))",
+            background:"radial-gradient(circle at 30% 30%, rgba(179,136,255,0.4), rgba(0,242,254,0.15))",
             display:"flex",alignItems:"center",justifyContent:"center",
             margin:"0 auto 24px",
             animation:"scaleBounce 0.5s ease-out 0.1s both",
-            boxShadow:"0 0 60px rgba(156,255,181,0.3)",
+            boxShadow:"0 0 60px rgba(179,136,255,0.3)",
           }}>
-            <span style={{fontSize:60,color:"#9cffb5",filter:"drop-shadow(0 0 20px rgba(156,255,181,0.8))"}}>&#10003;</span>
+            <span style={{fontSize:60,color:"#b388ff",filter:"drop-shadow(0 0 20px rgba(179,136,255,0.8))"}}>&#10003;</span>
           </div>
-          <h1 style={{color:"#9cffb5",fontSize:28,marginBottom:4,textShadow:"0 0 30px rgba(156,255,181,0.5)"}}>{message.toUpperCase()}</h1>
+          <h1 style={{color:"#b388ff",fontSize:28,marginBottom:4,textShadow:"0 0 30px rgba(179,136,255,0.5)"}}>{message.toUpperCase()}</h1>
           <p style={{color:"white",fontSize:18,marginBottom:4,opacity:0.9}}>{successName}</p>
           <img src="/images/logo_modo_oscuro.fw.png" alt="NEOMOTIC" style={{height:24,opacity:0.6,marginTop:8}} />
         </div>
@@ -552,21 +552,21 @@ export default function KioskPage() {
         <NeonClock />
         <div style={{width:"100%",maxWidth:360}}>
           <button onClick={()=>{setIdentifiedUser(null);setProcessing(false);setMatchConfidence(null);resetLiveness();loadDescriptors();}} style={{position:"fixed",top:12,right:12,padding:"8px 12px",borderRadius:8,border:"1px solid rgba(208,138,255,0.2)",background:"transparent",color:"#9bb4ca",fontSize:12}}>Cambiar</button>
-          <h1 style={{color:"#5ef2ff",fontSize:18,marginBottom:6}}>REGISTRO</h1>
-          <p style={{color:"#9cffb5",fontSize:20,marginBottom:8,fontWeight:"bold"}}>{identifiedUser.name}</p>
-          <p style={{color:"#5ef2ff",fontSize:11,marginBottom:12}}>GPS: {locationReady ? "OK" : "..."}</p>
+          <h1 style={{color:"#00f2fe",fontSize:18,marginBottom:6}}>REGISTRO</h1>
+          <p style={{color:"#b388ff",fontSize:20,marginBottom:8,fontWeight:"bold"}}>{identifiedUser.name}</p>
+          <p style={{color:"#00f2fe",fontSize:11,marginBottom:12}}>GPS: {locationReady ? "OK" : "..."}</p>
           {processing && (
             <div style={{width:"100%",height:4,background:"rgba(255,255,255,0.1)",borderRadius:2,marginBottom:12,overflow:"hidden"}}>
-              <div style={{width:"100%",height:"100%",background:"linear-gradient(90deg, #5ef2ff, #9cffb5)",borderRadius:2,animation:"progressShrink 2.5s ease-in-out forwards"}} />
+              <div style={{width:"100%",height:"100%",background:"linear-gradient(90deg, #00f2fe, #b388ff)",borderRadius:2,animation:"progressShrink 2.5s ease-in-out forwards"}} />
             </div>
           )}
           <div style={{display:"flex",gap:10}}>
-            <button onClick={()=>handleCheckIn("Entrada")} disabled={!locationReady || processing} style={{flex:1,padding:"24px 12px",borderRadius:16,border:"2px solid rgba(94,242,255,0.4)",background:!locationReady||processing?"#1a2a3a":"linear-gradient(135deg, rgba(94,242,255,0.2), rgba(156,255,181,0.1))",color:"white",fontSize:18,fontWeight:"bold",opacity:locationReady&&!processing?1:0.5,position:"relative",overflow:"hidden"}}>
-              {processing && <div style={{position:"absolute",inset:0,background:"linear-gradient(90deg, transparent, rgba(94,242,255,0.2), transparent)",animation:"shimmer 1.5s infinite"}} />}
+            <button onClick={()=>handleCheckIn("Entrada")} disabled={!locationReady || processing} style={{flex:1,padding:"24px 12px",borderRadius:16,border:"2px solid rgba(0,242,254,0.4)",background:!locationReady||processing?"#1a2a3a":"linear-gradient(135deg, rgba(0,242,254,0.2), rgba(179,136,255,0.1))",color:"white",fontSize:18,fontWeight:"bold",opacity:locationReady&&!processing?1:0.5,position:"relative",overflow:"hidden"}}>
+              {processing && <div style={{position:"absolute",inset:0,background:"linear-gradient(90deg, transparent, rgba(0,242,254,0.2), transparent)",animation:"shimmer 1.5s infinite"}} />}
               {processing?"PROCESANDO...":"ENTRADA"}
             </button>
-            <button onClick={()=>handleCheckIn("Salida")} disabled={!locationReady || processing} style={{flex:1,padding:"24px 12px",borderRadius:16,border:"2px solid rgba(94,242,255,0.2)",background:!locationReady||processing?"#1a2a3a":"#0a1526",color:"white",fontSize:18,fontWeight:"bold",opacity:locationReady&&!processing?1:0.5,position:"relative",overflow:"hidden"}}>
-              {processing && <div style={{position:"absolute",inset:0,background:"linear-gradient(90deg, transparent, rgba(94,242,255,0.15), transparent)",animation:"shimmer 1.5s infinite"}} />}
+            <button onClick={()=>handleCheckIn("Salida")} disabled={!locationReady || processing} style={{flex:1,padding:"24px 12px",borderRadius:16,border:"2px solid rgba(0,242,254,0.2)",background:!locationReady||processing?"#1a2a3a":"#0a1526",color:"white",fontSize:18,fontWeight:"bold",opacity:locationReady&&!processing?1:0.5,position:"relative",overflow:"hidden"}}>
+              {processing && <div style={{position:"absolute",inset:0,background:"linear-gradient(90deg, transparent, rgba(0,242,254,0.15), transparent)",animation:"shimmer 1.5s infinite"}} />}
               {processing?"PROCESANDO...":"SALIDA"}
             </button>
           </div>
@@ -580,12 +580,12 @@ export default function KioskPage() {
       <img src="/images/logo_modo_oscuro.fw.png" alt="NEOMOTIC" style={{height:48,marginBottom:12}} />
       <NeonClock />
       <button onClick={handleLogout} style={{position:"fixed",top:8,right:8,padding:"6px 10px",borderRadius:8,border:"1px solid rgba(255,140,158,0.3)",background:"transparent",color:"#ff8c9e",fontSize:11,zIndex:50}}>Salir</button>
-      {user?.role === "admin" && <button onClick={()=>router.push("/dashboard")} style={{position:"fixed",top:8,left:8,padding:"6px 10px",borderRadius:8,border:"1px solid rgba(94,242,255,0.3)",background:"transparent",color:"#5ef2ff",fontSize:11,zIndex:50}}>Dashboard</button>}
-      {user?.role?.toLowerCase().includes("supervisor") && <button onClick={()=>router.push("/empleado")} style={{position:"fixed",top:8,left:8,padding:"6px 10px",borderRadius:8,border:"1px solid rgba(94,242,255,0.3)",background:"transparent",color:"#5ef2ff",fontSize:11,zIndex:50}}>Mi Perfil</button>}
+      {user?.role === "admin" && <button onClick={()=>router.push("/dashboard")} style={{position:"fixed",top:8,left:8,padding:"6px 10px",borderRadius:8,border:"1px solid rgba(0,242,254,0.3)",background:"transparent",color:"#00f2fe",fontSize:11,zIndex:50}}>Dashboard</button>}
+      {user?.role?.toLowerCase().includes("supervisor") && <button onClick={()=>router.push("/empleado")} style={{position:"fixed",top:8,left:8,padding:"6px 10px",borderRadius:8,border:"1px solid rgba(0,242,254,0.3)",background:"transparent",color:"#00f2fe",fontSize:11,zIndex:50}}>Mi Perfil</button>}
       <div style={{width:"100%",maxWidth:380}}>
-        <h2 style={{color:"#5ef2ff",fontSize:16,marginBottom:8,textAlign:"center"}}>RECONOCIMIENTO FACIAL</h2>
+        <h2 style={{color:"#00f2fe",fontSize:16,marginBottom:8,textAlign:"center"}}>RECONOCIMIENTO FACIAL</h2>
         
-        <div style={{borderRadius:12,overflow:"hidden",background:"#000",marginBottom:8,height:260,position:"relative",border: faceInFrame ? "2px solid rgba(156,255,181,0.6)" : "2px solid transparent",boxShadow: faceInFrame ? "0 0 16px rgba(156,255,181,0.3)" : "none",transition:"all 0.3s"}}>
+        <div style={{borderRadius:12,overflow:"hidden",background:"#000",marginBottom:8,height:260,position:"relative",border: faceInFrame ? "2px solid rgba(179,136,255,0.6)" : "2px solid transparent",boxShadow: faceInFrame ? "0 0 16px rgba(179,136,255,0.3)" : "none",transition:"all 0.3s"}}>
           <video ref={videoRef} autoPlay playsInline muted style={{width:"100%",height:"100%",objectFit:"cover"}} />
           <canvas ref={canvasRef} style={{position:"absolute",top:0,left:0,width:"100%",height:"100%"}} />
         </div>
@@ -596,8 +596,8 @@ export default function KioskPage() {
               {faceStatus}
               {matchConfidence !== null && !identifiedUser && (
                 <span style={{display:"inline-block",marginLeft:8,padding:"1px 8px",borderRadius:10,fontSize:10,
-                  background:matchConfidence > 80 ? "rgba(156,255,181,0.2)" : matchConfidence > 50 ? "rgba(255,204,94,0.2)" : "rgba(255,140,158,0.2)",
-                  color:matchConfidence > 80 ? "#9cffb5" : matchConfidence > 50 ? "#ffcc5e" : "#ff8c9e",
+                  background:matchConfidence > 80 ? "rgba(179,136,255,0.2)" : matchConfidence > 50 ? "rgba(255,204,94,0.2)" : "rgba(255,140,158,0.2)",
+                  color:matchConfidence > 80 ? "#b388ff" : matchConfidence > 50 ? "#ffcc5e" : "#ff8c9e",
                   verticalAlign:"middle"
                 }}>{matchConfidence}%</span>
               )}
@@ -620,13 +620,13 @@ export default function KioskPage() {
 
       {showFaceReg && identifiedUser && (
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",zIndex:100}}>
-          <div style={{width:"90%",maxWidth:380,padding:20,borderRadius:16,background:"rgba(13,21,38,0.85)",border:"1px solid rgba(94,242,255,0.2)",backdropFilter:"blur(4px)"}}>
-            <h2 style={{color:"#5ef2ff",fontSize:16,marginTop:0,marginBottom:6}}>REGISTRAR TU ROSTRO</h2>
-            <p style={{color:"#9cffb5",fontSize:14,marginBottom:6}}>{identifiedUser.name}</p>
-            <p style={{color:faceRegDetected?"#9cffb5":"#9bb4ca",fontSize:13,textAlign:"center",marginBottom:10}}>
+          <div style={{width:"90%",maxWidth:380,padding:20,borderRadius:16,background:"rgba(13,21,38,0.85)",border:"1px solid rgba(0,242,254,0.2)",backdropFilter:"blur(4px)"}}>
+            <h2 style={{color:"#00f2fe",fontSize:16,marginTop:0,marginBottom:6}}>REGISTRAR TU ROSTRO</h2>
+            <p style={{color:"#b388ff",fontSize:14,marginBottom:6}}>{identifiedUser.name}</p>
+            <p style={{color:faceRegDetected?"#b388ff":"#9bb4ca",fontSize:13,textAlign:"center",marginBottom:10}}>
               {faceRegDetected ? "Rostro detectado" : "Colócate frente a la cámara..."}
             </p>
-            <button onClick={registerOwnFace} disabled={!faceRegDetected || faceRegSaving} style={{width:"100%",padding:12,borderRadius:10,border:"1px solid rgba(156,255,181,0.4)",background:faceRegDetected?"rgba(156,255,181,0.2)":"#1a2a3a",color:"white",fontSize:14,fontWeight:"bold",opacity:faceRegDetected?1:0.5}}>
+            <button onClick={registerOwnFace} disabled={!faceRegDetected || faceRegSaving} style={{width:"100%",padding:12,borderRadius:10,border:"1px solid rgba(179,136,255,0.4)",background:faceRegDetected?"rgba(179,136,255,0.2)":"#1a2a3a",color:"white",fontSize:14,fontWeight:"bold",opacity:faceRegDetected?1:0.5}}>
               {faceRegSaving ? "Guardando..." : "REGISTRAR ROSTRO"}
             </button>
           </div>
@@ -635,24 +635,24 @@ export default function KioskPage() {
 
       {manualMode && (
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.9)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100}}>
-          <div style={{maxWidth:340,padding:20,borderRadius:16,background:"#0d1526",border:"1px solid rgba(94,242,255,0.2)"}}>
-            <h2 style={{color:"#5ef2ff",marginTop:0,fontSize:15}}>Ingresa tus datos</h2>
+          <div style={{maxWidth:340,padding:20,borderRadius:16,background:"#0d1526",border:"1px solid rgba(0,242,254,0.2)"}}>
+            <h2 style={{color:"#00f2fe",marginTop:0,fontSize:15}}>Ingresa tus datos</h2>
             <input 
               value={manualName} 
               onChange={(e)=>setManualName(e.target.value)} 
               placeholder="Nombre completo" 
               autoFocus 
-              style={{width:"100%",padding:12,borderRadius:10,border:"1px solid rgba(94,242,255,0.2)",background:"rgba(10,21,38,0.8)",color:"white",fontSize:14,marginBottom:10}} 
+              style={{width:"100%",padding:12,borderRadius:10,border:"1px solid rgba(0,242,254,0.2)",background:"rgba(10,21,38,0.8)",color:"white",fontSize:14,marginBottom:10}} 
             />
             <input 
               value={manualPin} 
               onChange={(e)=>setManualPin(e.target.value)} 
               placeholder="PIN" 
               type="password"
-              style={{width:"100%",padding:12,borderRadius:10,border:"1px solid rgba(94,242,255,0.2)",background:"rgba(10,21,38,0.8)",color:"white",fontSize:14,marginBottom:14}} 
+              style={{width:"100%",padding:12,borderRadius:10,border:"1px solid rgba(0,242,254,0.2)",background:"rgba(10,21,38,0.8)",color:"white",fontSize:14,marginBottom:14}} 
             />
             <div style={{display:"flex",gap:10}}>
-              <button onClick={handleManualSubmit} style={{flex:1,padding:12,borderRadius:10,border:"1px solid rgba(94,242,255,0.3)",background:"rgba(94,242,255,0.2)",color:"white",fontSize:14}}>Aceptar</button>
+              <button onClick={handleManualSubmit} style={{flex:1,padding:12,borderRadius:10,border:"1px solid rgba(0,242,254,0.3)",background:"rgba(0,242,254,0.2)",color:"white",fontSize:14}}>Aceptar</button>
               <button onClick={()=>{setManualMode(false);setManualPin("");}} style={{flex:1,padding:12,borderRadius:10,border:"1px solid rgba(255,140,158,0.3)",background:"transparent",color:"#ff8c9e",fontSize:14}}>Cancelar</button>
             </div>
           </div>

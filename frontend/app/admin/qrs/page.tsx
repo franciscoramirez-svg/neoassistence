@@ -37,12 +37,12 @@ export default function QRsPage() {
   return (
     <main className="page-shell">
       <nav style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 0",marginBottom:16}}>
-        <Link href="/dashboard" style={{color:"#5ef2ff",textDecoration:"none"}}>← Volver</Link>
+        <Link href="/dashboard" style={{color:"#00f2fe",textDecoration:"none"}}>← Volver</Link>
         <button onClick={()=>{localStorage.removeItem("neoassistence_user");router.push("/login")}} style={{background:"none",border:"none",color:"#ff8c9e",cursor:"pointer"}}>Cerrar sesión</button>
       </nav>
 
       <div className="glass" style={{padding:24,marginBottom:24}}>
-        <p style={{color:"#5ef2ff",textTransform:"uppercase",letterSpacing:"0.18em"}}>Admin</p>
+        <p style={{color:"#00f2fe",textTransform:"uppercase",letterSpacing:"0.18em"}}>Admin</p>
         <h1 style={{margin:"8px 0"}}>Códigos QR</h1>
         <p style={{color:"#9bb4ca"}}>Imprime estos QR y colócalos en cada sucursal. Al escanearlos, el empleado abre el check-in con la sucursal pre-seleccionada.</p>
       </div>
@@ -63,7 +63,7 @@ export default function QRsPage() {
                   <img src={qrUrl} alt={`QR ${b.nombre}`} style={{width:"100%",height:"100%"}} />
                 </div>
                 <p style={{color:"#9bb4ca",fontSize:12,marginBottom:16,wordBreak:"break-all"}}>{qrData}</p>
-                <a href={`https://quickchart.io/qr?text=${encodeURIComponent(qrData)}&size=500&margin=2`} download={`qr_${b.nombre.replace(/\s+/g,"_")}.png`} style={{display:"inline-block",padding:"10px 16px",borderRadius:10,border:"1px solid rgba(94,242,255,0.28)",background:"linear-gradient(135deg, rgba(94,242,255,0.14), rgba(156,255,181,0.08))",color:"white",textDecoration:"none"}}>📥 Descargar</a>
+                <a href={`https://quickchart.io/qr?text=${encodeURIComponent(qrData)}&size=500&margin=2`} download={`qr_${b.nombre.replace(/\s+/g,"_")}.png`} style={{display:"inline-block",padding:"10px 16px",borderRadius:10,border:"1px solid rgba(0,242,254,0.28)",background:"linear-gradient(135deg, rgba(0,242,254,0.14), rgba(179,136,255,0.08))",color:"white",textDecoration:"none"}}>📥 Descargar</a>
               </div>
             );
           })}

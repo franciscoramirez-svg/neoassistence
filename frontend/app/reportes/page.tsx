@@ -193,12 +193,12 @@ export default function ReportesPage() {
         </button>
       </nav>
 
-      <Link href="/dashboard" style={{ color: "#5ef2ff", textDecoration: "none", display:"block",marginBottom:16 }}>
+      <Link href="/dashboard" style={{ color: "#00f2fe", textDecoration: "none", display:"block",marginBottom:16 }}>
         ← Volver al dashboard
       </Link>
 
       <section className="glass" style={{ padding: 24, marginBottom: 24 }}>
-        <p style={{ color: "#5ef2ff", textTransform: "uppercase", letterSpacing: "0.18em" }}>Reportes</p>
+        <p style={{ color: "#00f2fe", textTransform: "uppercase", letterSpacing: "0.18em" }}>Reportes</p>
         <h1 style={{ margin: "8px 0" }}>Exportación de datos</h1>
         <p style={{ color: "#9bb4ca" }}>Filtra y exporta los registros de asistencia.</p>
       </section>
@@ -206,22 +206,22 @@ export default function ReportesPage() {
       <section className="glass" style={{ padding: 24, marginBottom: 24 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <h2 style={{ margin: 0 }}>Filtros</h2>
-          <button onClick={limpiarFiltros} style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid rgba(94,242,255,0.18)", background: "rgba(10,21,38,0.8)", color: "#9bb4ca", cursor: "pointer" }}>
+          <button onClick={limpiarFiltros} style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid rgba(0,242,254,0.18)", background: "rgba(10,21,38,0.8)", color: "#9bb4ca", cursor: "pointer" }}>
             Limpiar
           </button>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12 }}>
           <div>
             <label style={{ display: "block", marginBottom: 6, color: "#9bb4ca", fontSize: 14 }}>Desde</label>
-            <input type="date" value={filtroFechaInicio} onChange={(e) => { setFiltroFechaInicio(e.target.value); setPagina(0); }} style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid rgba(94,242,255,0.18)", background: "rgba(10,21,38,0.8)", color: "white" }} />
+            <input type="date" value={filtroFechaInicio} onChange={(e) => { setFiltroFechaInicio(e.target.value); setPagina(0); }} style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid rgba(0,242,254,0.18)", background: "rgba(10,21,38,0.8)", color: "white" }} />
           </div>
           <div>
             <label style={{ display: "block", marginBottom: 6, color: "#9bb4ca", fontSize: 14 }}>Hasta</label>
-            <input type="date" value={filtroFechaFin} onChange={(e) => { setFiltroFechaFin(e.target.value); setPagina(0); }} style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid rgba(94,242,255,0.18)", background: "rgba(10,21,38,0.8)", color: "white" }} />
+            <input type="date" value={filtroFechaFin} onChange={(e) => { setFiltroFechaFin(e.target.value); setPagina(0); }} style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid rgba(0,242,254,0.18)", background: "rgba(10,21,38,0.8)", color: "white" }} />
           </div>
           <div>
             <label style={{ display: "block", marginBottom: 6, color: "#9bb4ca", fontSize: 14 }}>Empleado</label>
-            <select value={filtroEmpleado} onChange={(e) => { setFiltroEmpleado(e.target.value); setPagina(0); }} style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid rgba(94,242,255,0.18)", background: "rgba(10,21,38,0.8)", color: "white" }}>
+            <select value={filtroEmpleado} onChange={(e) => { setFiltroEmpleado(e.target.value); setPagina(0); }} style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid rgba(0,242,254,0.18)", background: "rgba(10,21,38,0.8)", color: "white" }}>
               <option value="">Todos</option>
               {empleadosUnicos.map(emp => (
                 <option key={emp} value={emp}>{emp}</option>
@@ -230,7 +230,7 @@ export default function ReportesPage() {
           </div>
           <div>
             <label style={{ display: "block", marginBottom: 6, color: "#9bb4ca", fontSize: 14 }}>Tipo</label>
-            <select value={filtroTipo} onChange={(e) => { setFiltroTipo(e.target.value); setPagina(0); }} style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid rgba(94,242,255,0.18)", background: "rgba(10,21,38,0.8)", color: "white" }}>
+            <select value={filtroTipo} onChange={(e) => { setFiltroTipo(e.target.value); setPagina(0); }} style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid rgba(0,242,254,0.18)", background: "rgba(10,21,38,0.8)", color: "white" }}>
               <option value="">Todos</option>
               <option value="Entrada">Entrada</option>
               <option value="Salida">Salida</option>
@@ -243,11 +243,11 @@ export default function ReportesPage() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <h2 style={{ margin: 0 }}>Registros ({registrosFiltrados.length})</h2>
           <div style={{display:"flex",gap:12,flexWrap:"wrap",alignItems:"center"}}>
-            <Link href="/reportes-auto" style={{padding:"8px 16px",borderRadius:10,border:"1px solid rgba(156,255,181,0.3)",background:"rgba(156,255,181,0.1)",color:"#9cffb5",textDecoration:"none"}}>📧 Auto-Reporte</Link>
-            <button onClick={exportarCSV} style={{ padding: "10px 16px", borderRadius: 10, border: "1px solid rgba(94,242,255,0.28)", background: "linear-gradient(135deg, rgba(94,242,255,0.14), rgba(156,255,181,0.08))", color: "white", cursor: "pointer" }}>
+            <Link href="/reportes-auto" style={{padding:"8px 16px",borderRadius:10,border:"1px solid rgba(179,136,255,0.3)",background:"rgba(179,136,255,0.1)",color:"#b388ff",textDecoration:"none"}}>📧 Auto-Reporte</Link>
+            <button onClick={exportarCSV} style={{ padding: "10px 16px", borderRadius: 10, border: "1px solid rgba(0,242,254,0.28)", background: "linear-gradient(135deg, rgba(0,242,254,0.14), rgba(179,136,255,0.08))", color: "white", cursor: "pointer" }}>
               📥 CSV
             </button>
-            <button onClick={exportarExcel} style={{ padding: "10px 16px", borderRadius: 10, border: "1px solid rgba(156,255,181,0.28)", background: "linear-gradient(135deg, rgba(156,255,181,0.14), rgba(94,242,255,0.08))", color: "white", cursor: "pointer" }}>
+            <button onClick={exportarExcel} style={{ padding: "10px 16px", borderRadius: 10, border: "1px solid rgba(179,136,255,0.28)", background: "linear-gradient(135deg, rgba(179,136,255,0.14), rgba(0,242,254,0.08))", color: "white", cursor: "pointer" }}>
               📊 Excel
             </button>
             <button onClick={exportarSemanal} style={{ padding: "10px 16px", borderRadius: 10, border: "1px solid rgba(255,140,158,0.28)", background: "linear-gradient(135deg, rgba(255,140,158,0.14), rgba(208,138,255,0.08))", color: "white", cursor: "pointer" }}>
@@ -267,7 +267,7 @@ export default function ReportesPage() {
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
                 <thead>
-                  <tr style={{ borderBottom: "1px solid rgba(94,242,255,0.18)" }}>
+                  <tr style={{ borderBottom: "1px solid rgba(0,242,254,0.18)" }}>
                     <th style={{ textAlign: "left", padding: "10px 8px", color: "#9bb4ca", fontWeight: 500 }}>Fecha</th>
                     <th style={{ textAlign: "left", padding: "10px 8px", color: "#9bb4ca", fontWeight: 500 }}>Empleado</th>
                     <th style={{ textAlign: "left", padding: "10px 8px", color: "#9bb4ca", fontWeight: 500 }}>Tipo</th>
@@ -276,11 +276,11 @@ export default function ReportesPage() {
                 </thead>
                 <tbody>
                   {registrosPagina.map((r) => (
-                    <tr key={r.id} style={{ borderBottom: "1px solid rgba(94,242,255,0.08)" }}>
+                    <tr key={r.id} style={{ borderBottom: "1px solid rgba(0,242,254,0.08)" }}>
                       <td style={{ padding: "10px 8px" }}>{new Date(r.fecha_hora).toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</td>
                       <td style={{ padding: "10px 8px" }}>{r.empleado}</td>
                       <td style={{ padding: "10px 8px" }}>{r.tipo}</td>
-                      <td style={{ padding: "10px 8px", color: r.estatus?.toLowerCase().includes("retardo") ? "#ff8c9e" : "#9cffb5", fontSize: 13 }}>{r.estatus}</td>
+                      <td style={{ padding: "10px 8px", color: r.estatus?.toLowerCase().includes("retardo") ? "#ff8c9e" : "#b388ff", fontSize: 13 }}>{r.estatus}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -289,11 +289,11 @@ export default function ReportesPage() {
 
             {totalPaginas > 1 && (
               <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 16 }}>
-                <button onClick={() => setPagina(p => Math.max(0, p - 1))} disabled={pagina === 0} style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid rgba(94,242,255,0.18)", background: pagina === 0 ? "rgba(10,21,38,0.4)" : "rgba(10,21,38,0.8)", color: "#9bb4ca", cursor: pagina === 0 ? "not-allowed" : "pointer" }}>
+                <button onClick={() => setPagina(p => Math.max(0, p - 1))} disabled={pagina === 0} style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid rgba(0,242,254,0.18)", background: pagina === 0 ? "rgba(10,21,38,0.4)" : "rgba(10,21,38,0.8)", color: "#9bb4ca", cursor: pagina === 0 ? "not-allowed" : "pointer" }}>
                   ← Anterior
                 </button>
                 <span style={{ padding: "8px 12px", color: "#9bb4ca" }}>{pagina + 1} / {totalPaginas}</span>
-                <button onClick={() => setPagina(p => Math.min(totalPaginas - 1, p + 1))} disabled={pagina >= totalPaginas - 1} style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid rgba(94,242,255,0.18)", background: pagina >= totalPaginas - 1 ? "rgba(10,21,38,0.4)" : "rgba(10,21,38,0.8)", color: "#9bb4ca", cursor: pagina >= totalPaginas - 1 ? "not-allowed" : "pointer" }}>
+                <button onClick={() => setPagina(p => Math.min(totalPaginas - 1, p + 1))} disabled={pagina >= totalPaginas - 1} style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid rgba(0,242,254,0.18)", background: pagina >= totalPaginas - 1 ? "rgba(10,21,38,0.4)" : "rgba(10,21,38,0.8)", color: "#9bb4ca", cursor: pagina >= totalPaginas - 1 ? "not-allowed" : "pointer" }}>
                   Siguiente →
                 </button>
               </div>

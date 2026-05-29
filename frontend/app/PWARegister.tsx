@@ -72,9 +72,9 @@ export default function PWARegister() {
         style={{
           padding: "6px 10px",
           borderRadius: 8,
-          border: subscribed ? "1px solid rgba(94,242,255,0.3)" : "1px solid rgba(255,204,94,0.3)",
-          background: subscribed ? "rgba(94,242,255,0.1)" : "rgba(255,204,94,0.1)",
-          color: subscribed ? "#5ef2ff" : "#ffcc5e",
+          border: subscribed ? "1px solid rgba(0,242,254,0.3)" : "1px solid rgba(255,204,94,0.3)",
+          background: subscribed ? "rgba(0,242,254,0.1)" : "rgba(255,204,94,0.1)",
+          color: subscribed ? "#00f2fe" : "#ffcc5e",
           fontSize: 11,
           cursor: "pointer",
         }}

@@ -89,12 +89,12 @@ export default function MapaPage() {
             className: "custom-marker",
             html: `<div style="
               width: 40px; height: 40px;
-              background: ${hasRetardo ? "linear-gradient(135deg, #ff8c9e, #d04aff)" : "linear-gradient(135deg, #5ef2ff, #9cffb5)"};
+              background: ${hasRetardo ? "linear-gradient(135deg, #ff8c9e, #d04aff)" : "linear-gradient(135deg, #00f2fe, #b388ff)"};
               border-radius: 50%;
               display: flex; align-items: center; justify-content: center;
-              box-shadow: 0 0 20px ${hasRetardo ? "rgba(255,140,158,0.6)" : "rgba(94,242,255,0.6)"};
+              box-shadow: 0 0 20px ${hasRetardo ? "rgba(255,140,158,0.6)" : "rgba(0,242,254,0.6)"};
               font-size: 14px; font-weight: bold; color: #0a1526;
-              border: 3px solid ${hasRetardo ? "#ff8c9e" : "#5ef2ff"};
+              border: 3px solid ${hasRetardo ? "#ff8c9e" : "#00f2fe"};
             ">${total}</div>`,
             iconSize: [40, 40],
             iconAnchor: [20, 20],
@@ -109,7 +109,7 @@ export default function MapaPage() {
               <div style="display: flex; justify-content: space-around; font-size: 12px;">
                 <span>📥 ${branchRecords.filter(r => r.tipo === "Entrada").length}</span>
                 <span>📤 ${branchRecords.filter(r => r.tipo === "Salida").length}</span>
-                <span style="color: ${hasRetardo ? "#d04aff" : "#5ef2ff"}">⏱ ${branchRecords.filter(r => r.estatus?.toLowerCase().includes("retardo")).length}</span>
+                <span style="color: ${hasRetardo ? "#d04aff" : "#00f2fe"}">⏱ ${branchRecords.filter(r => r.estatus?.toLowerCase().includes("retardo")).length}</span>
               </div>
             </div>
           `);
@@ -147,7 +147,7 @@ export default function MapaPage() {
         <button onClick={() => { localStorage.removeItem("neoassistence_user"); router.push("/login"); }} style={{background:"none",border:"none",color:"#ff8c9e",cursor:"pointer"}}>Cerrar sesión</button>
       </nav>
 
-      <Link href="/dashboard" style={{color:"#5ef2ff",textDecoration:"none",display:"block",marginBottom:16}}>← Volver al dashboard</Link>
+      <Link href="/dashboard" style={{color:"#00f2fe",textDecoration:"none",display:"block",marginBottom:16}}>← Volver al dashboard</Link>
 
       <div className="glass" style={{padding:24,marginBottom:24}}>
         <h1 style={{margin:0,fontSize:28}}>🗺️ Mapa de Ubicaciones</h1>
@@ -156,7 +156,7 @@ export default function MapaPage() {
 
       {loading ? (
         <div className="glass" style={{padding:40,textAlign:"center"}}>
-          <p style={{color:"#5ef2ff",fontSize:24}}>🗺️</p>
+          <p style={{color:"#00f2fe",fontSize:24}}>🗺️</p>
           <p style={{color:"#9bb4ca"}}>Cargando mapa...</p>
         </div>
       ) : branches.length > 0 ? (
@@ -166,12 +166,12 @@ export default function MapaPage() {
             borderRadius: 16,
             overflow: "hidden",
             marginBottom: 24,
-            border: "1px solid rgba(94,242,255,0.2)",
+            border: "1px solid rgba(0,242,254,0.2)",
           }} />
           
           <div style={{display:"flex",gap:12,flexWrap:"wrap",marginBottom:24}}>
             <div style={{display:"flex",alignItems:"center",gap:6}}>
-              <div style={{width:16,height:16,borderRadius:"50%",background:"linear-gradient(135deg, #5ef2ff, #9cffb5)"}} />
+              <div style={{width:16,height:16,borderRadius:"50%",background:"linear-gradient(135deg, #00f2fe, #b388ff)"}} />
               <span style={{color:"#9bb4ca",fontSize:13}}>Sin retardos</span>
             </div>
             <div style={{display:"flex",alignItems:"center",gap:6}}>
@@ -183,18 +183,18 @@ export default function MapaPage() {
           {selectedBranch && (
             <div className="glass" style={{padding:20,marginBottom:24}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <h3 style={{margin:0,color:"#5ef2ff"}}>{selectedBranch.nombre}</h3>
+                <h3 style={{margin:0,color:"#00f2fe"}}>{selectedBranch.nombre}</h3>
                 <button onClick={() => setSelectedBranch(null)} style={{background:"none",border:"none",color:"#9bb4ca",cursor:"pointer",fontSize:18}}>✕</button>
               </div>
               <p style={{color:"#9bb4ca",fontSize:12,marginTop:4}}>📍 {selectedBranch.lat.toFixed(4)}, {selectedBranch.lon.toFixed(4)}</p>
               <div style={{display:"grid",gridTemplateColumns:"repeat(4, 1fr)",gap:8,marginTop:16}}>
                 <div style={{textAlign:"center",padding:12,borderRadius:8,background:"rgba(0,0,0,0.3)"}}>
                   <p style={{color:"#9bb4ca",margin:0,fontSize:10}}>Total</p>
-                  <p style={{color:"#5ef2ff",fontSize:22,fontWeight:"bold"}}>{getBranchStats(selectedBranch.id).total}</p>
+                  <p style={{color:"#00f2fe",fontSize:22,fontWeight:"bold"}}>{getBranchStats(selectedBranch.id).total}</p>
                 </div>
                 <div style={{textAlign:"center",padding:12,borderRadius:8,background:"rgba(0,0,0,0.3)"}}>
                   <p style={{color:"#9bb4ca",margin:0,fontSize:10}}>Entrada</p>
-                  <p style={{color:"#9cffb5",fontSize:22,fontWeight:"bold"}}>{getBranchStats(selectedBranch.id).entradas}</p>
+                  <p style={{color:"#b388ff",fontSize:22,fontWeight:"bold"}}>{getBranchStats(selectedBranch.id).entradas}</p>
                 </div>
                 <div style={{textAlign:"center",padding:12,borderRadius:8,background:"rgba(0,0,0,0.3)"}}>
                   <p style={{color:"#9bb4ca",margin:0,fontSize:10}}>Salida</p>

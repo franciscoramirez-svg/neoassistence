@@ -45,12 +45,12 @@ export default function NominaPage() {
   return (
     <main className="page-shell">
       <nav style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 0",marginBottom:8}}>
-        <Link href="/dashboard" style={{color:"#5ef2ff",fontSize:13,textDecoration:"none"}}>← Volver</Link>
+        <Link href="/dashboard" style={{color:"#00f2fe",fontSize:13,textDecoration:"none"}}>← Volver</Link>
         <span style={{color:"#9bb4ca"}}>{user?.name}</span>
       </nav>
 
       <div className="glass" style={{padding:24,marginBottom:20}}>
-        <p style={{color:"#5ef2ff",textTransform:"uppercase",letterSpacing:"0.18em"}}>Admin</p>
+        <p style={{color:"#00f2fe",textTransform:"uppercase",letterSpacing:"0.18em"}}>Admin</p>
         <h1 style={{margin:"8px 0"}}>Nómina</h1>
         <p style={{color:"#9bb4ca"}}>Cálculo automático de sueldos basado en asistencia.</p>
       </div>
@@ -60,15 +60,15 @@ export default function NominaPage() {
           <div>
             <label style={{display:"block",marginBottom:4,color:"#9bb4ca",fontSize:12}}>Periodo inicio</label>
             <input type="date" value={periodo.inicio} onChange={e => setPeriodo({...periodo, inicio: e.target.value})}
-              style={{padding:"8px 12px",borderRadius:8,border:"1px solid rgba(94,242,255,0.2)",background:"rgba(10,21,38,0.8)",color:"white",fontSize:13}} />
+              style={{padding:"8px 12px",borderRadius:8,border:"1px solid rgba(0,242,254,0.2)",background:"rgba(10,21,38,0.8)",color:"white",fontSize:13}} />
           </div>
           <div>
             <label style={{display:"block",marginBottom:4,color:"#9bb4ca",fontSize:12}}>Periodo fin</label>
             <input type="date" value={periodo.fin} onChange={e => setPeriodo({...periodo, fin: e.target.value})}
-              style={{padding:"8px 12px",borderRadius:8,border:"1px solid rgba(94,242,255,0.2)",background:"rgba(10,21,38,0.8)",color:"white",fontSize:13}} />
+              style={{padding:"8px 12px",borderRadius:8,border:"1px solid rgba(0,242,254,0.2)",background:"rgba(10,21,38,0.8)",color:"white",fontSize:13}} />
           </div>
           <button onClick={calcular} disabled={loading}
-            style={{padding:"10px 24px",borderRadius:8,border:"none",background:"linear-gradient(135deg, #5ef2ff, #9cffb5)",color:"#0a1526",fontWeight:"bold",fontSize:14,cursor:"pointer"}}>
+            style={{padding:"10px 24px",borderRadius:8,border:"none",background:"linear-gradient(135deg, #00f2fe, #b388ff)",color:"#0a1526",fontWeight:"bold",fontSize:14,cursor:"pointer"}}>
             {loading ? "Calculando..." : "Calcular nómina"}
           </button>
         </div>
@@ -79,7 +79,7 @@ export default function NominaPage() {
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(150px, 1fr))",gap:12,marginBottom:20}}>
             <div className="glass" style={{padding:"16px",textAlign:"center",borderRadius:16}}>
               <p style={{color:"#9bb4ca",margin:0,fontSize:12,textTransform:"uppercase",letterSpacing:"0.08em"}}>Empleados</p>
-                  <p style={{color:"#5ef2ff",fontSize:32,margin:"6px 0 0",fontWeight:"bold"}}>{data.length}</p>
+                  <p style={{color:"#00f2fe",fontSize:32,margin:"6px 0 0",fontWeight:"bold"}}>{data.length}</p>
             </div>
             <div className="glass" style={{padding:"16px",textAlign:"center",borderRadius:16}}>
               <p style={{color:"#9bb4ca",margin:0,fontSize:12,textTransform:"uppercase",letterSpacing:"0.08em"}}>Total bruto</p>
@@ -91,7 +91,7 @@ export default function NominaPage() {
             </div>
             <div className="glass" style={{padding:"16px",textAlign:"center",borderRadius:16}}>
               <p style={{color:"#9bb4ca",margin:0,fontSize:12,textTransform:"uppercase",letterSpacing:"0.08em"}}>Total nómina</p>
-              <p style={{color:"#9cffb5",fontSize:28,margin:"6px 0 0",fontWeight:"bold"}}>{"$" + totalNeto.toFixed(2)}</p>
+              <p style={{color:"#b388ff",fontSize:28,margin:"6px 0 0",fontWeight:"bold"}}>{"$" + totalNeto.toFixed(2)}</p>
             </div>
           </div>
 
@@ -99,7 +99,7 @@ export default function NominaPage() {
             <p style={{color:"#9bb4ca",fontSize:12,marginBottom:16}}>{periodoLabel}</p>
             <table style={{width:"100%",borderCollapse:"collapse",fontSize:13,minWidth:600}}>
               <thead>
-                <tr style={{borderBottom:"1px solid rgba(94,242,255,0.15)"}}>
+                <tr style={{borderBottom:"1px solid rgba(0,242,254,0.15)"}}>
                   <th style={{textAlign:"left",padding:"8px",color:"#9bb4ca",fontWeight:500}}>Empleado</th>
                   <th style={{textAlign:"center",padding:"8px",color:"#9bb4ca",fontWeight:500}}>Días</th>
                   <th style={{textAlign:"center",padding:"8px",color:"#9bb4ca",fontWeight:500}}>Horas</th>
@@ -108,7 +108,7 @@ export default function NominaPage() {
                   <th style={{textAlign:"right",padding:"8px",color:"#9bb4ca",fontWeight:500}}>S. Diario</th>
                   <th style={{textAlign:"right",padding:"8px",color:"#9bb4ca",fontWeight:500}}>Bruto</th>
                   <th style={{textAlign:"right",padding:"8px",color:"#ff8c9e",fontWeight:500}}>Desc.</th>
-                  <th style={{textAlign:"right",padding:"8px",color:"#9cffb5",fontWeight:500}}>Neto</th>
+                  <th style={{textAlign:"right",padding:"8px",color:"#b388ff",fontWeight:500}}>Neto</th>
                 </tr>
               </thead>
               <tbody>
@@ -122,17 +122,17 @@ export default function NominaPage() {
                     <td style={{padding:"8px",textAlign:"right",color:"#9bb4ca"}}>{"$" + r.sueldo_diario.toFixed(2)}</td>
                     <td style={{padding:"8px",textAlign:"right",color:"white"}}>{"$" + r.sueldo_bruto.toFixed(2)}</td>
                     <td style={{padding:"8px",textAlign:"right",color:"#ff8c9e"}}>{"-$" + r.descuentos.toFixed(2)}</td>
-                    <td style={{padding:"8px",textAlign:"right",color:"#9cffb5",fontWeight:"bold"}}>{"$" + r.sueldo_neto.toFixed(2)}</td>
+                    <td style={{padding:"8px",textAlign:"right",color:"#b388ff",fontWeight:"bold"}}>{"$" + r.sueldo_neto.toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
               <tfoot>
-                <tr style={{borderTop:"2px solid rgba(94,242,255,0.2)"}}>
-                  <td style={{padding:"8px",color:"#5ef2ff",fontWeight:"bold"}}>Total</td>
+                <tr style={{borderTop:"2px solid rgba(0,242,254,0.2)"}}>
+                  <td style={{padding:"8px",color:"#00f2fe",fontWeight:"bold"}}>Total</td>
                   <td colSpan={5} />
                     <td style={{padding:"8px",textAlign:"right",color:"white",fontWeight:"bold"}}>{"$" + totalBruto.toFixed(2)}</td>
                   <td style={{padding:"8px",textAlign:"right",color:"#ff8c9e",fontWeight:"bold"}}>{"-$" + totalDesc.toFixed(2)}</td>
-                  <td style={{padding:"8px",textAlign:"right",color:"#9cffb5",fontWeight:"bold"}}>{"$" + totalNeto.toFixed(2)}</td>
+                  <td style={{padding:"8px",textAlign:"right",color:"#b388ff",fontWeight:"bold"}}>{"$" + totalNeto.toFixed(2)}</td>
                 </tr>
               </tfoot>
             </table>

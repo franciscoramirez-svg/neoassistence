@@ -61,12 +61,12 @@ export default function AdminLoginLogsPage() {
   return (
     <main className="page-shell">
       <nav style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 0",marginBottom:8}}>
-        <Link href="/dashboard" style={{color:"#5ef2ff",fontSize:13,textDecoration:"none"}}>← Volver</Link>
+        <Link href="/dashboard" style={{color:"#00f2fe",fontSize:13,textDecoration:"none"}}>← Volver</Link>
         <button onClick={handleLogout} style={{background:"none",border:"none",color:"#ff8c9e",cursor:"pointer"}}>Cerrar sesión</button>
       </nav>
 
       <div className="glass" style={{padding:24,marginBottom:20}}>
-        <p style={{color:"#5ef2ff",textTransform:"uppercase",letterSpacing:"0.18em"}}>Admin</p>
+        <p style={{color:"#00f2fe",textTransform:"uppercase",letterSpacing:"0.18em"}}>Admin</p>
         <h1 style={{margin:"8px 0"}}>Registro de accesos</h1>
         <p style={{color:"#9bb4ca"}}>Monitoreo de inicios de sesión — quién, cuándo y si fue exitoso.</p>
       </div>
@@ -75,11 +75,11 @@ export default function AdminLoginLogsPage() {
         <div style={{display:"flex",gap:12,flexWrap:"wrap",alignItems:"end"}}>
           <div style={{flex:1,minWidth:140}}>
             <label style={{display:"block",marginBottom:4,color:"#9bb4ca",fontSize:12}}>Empleado</label>
-            <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Buscar por nombre..." style={{width:"100%",padding:8,borderRadius:8,border:"1px solid rgba(94,242,255,0.2)",background:"rgba(10,21,38,0.8)",color:"white",fontSize:13}} />
+            <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Buscar por nombre..." style={{width:"100%",padding:8,borderRadius:8,border:"1px solid rgba(0,242,254,0.2)",background:"rgba(10,21,38,0.8)",color:"white",fontSize:13}} />
           </div>
           <div>
             <label style={{display:"block",marginBottom:4,color:"#9bb4ca",fontSize:12}}>Resultado</label>
-            <select value={success} onChange={e => { setSuccess(e.target.value); setPage(1); }} style={{padding:"8px 12px",borderRadius:8,border:"1px solid rgba(94,242,255,0.2)",background:"rgba(10,21,38,0.8)",color:"white",fontSize:13}}>
+            <select value={success} onChange={e => { setSuccess(e.target.value); setPage(1); }} style={{padding:"8px 12px",borderRadius:8,border:"1px solid rgba(0,242,254,0.2)",background:"rgba(10,21,38,0.8)",color:"white",fontSize:13}}>
               <option value="all">Todos</option>
               <option value="success">Exitosos</option>
               <option value="failed">Fallidos</option>
@@ -87,13 +87,13 @@ export default function AdminLoginLogsPage() {
           </div>
           <div>
             <label style={{display:"block",marginBottom:4,color:"#9bb4ca",fontSize:12}}>Desde</label>
-            <input type="date" value={startDate} onChange={e => { setStartDate(e.target.value); setPage(1); }} style={{padding:"6px 8px",borderRadius:8,border:"1px solid rgba(94,242,255,0.2)",background:"rgba(10,21,38,0.8)",color:"white",fontSize:13}} />
+            <input type="date" value={startDate} onChange={e => { setStartDate(e.target.value); setPage(1); }} style={{padding:"6px 8px",borderRadius:8,border:"1px solid rgba(0,242,254,0.2)",background:"rgba(10,21,38,0.8)",color:"white",fontSize:13}} />
           </div>
           <div>
             <label style={{display:"block",marginBottom:4,color:"#9bb4ca",fontSize:12}}>Hasta</label>
-            <input type="date" value={endDate} onChange={e => { setEndDate(e.target.value); setPage(1); }} style={{padding:"6px 8px",borderRadius:8,border:"1px solid rgba(94,242,255,0.2)",background:"rgba(10,21,38,0.8)",color:"white",fontSize:13}} />
+            <input type="date" value={endDate} onChange={e => { setEndDate(e.target.value); setPage(1); }} style={{padding:"6px 8px",borderRadius:8,border:"1px solid rgba(0,242,254,0.2)",background:"rgba(10,21,38,0.8)",color:"white",fontSize:13}} />
           </div>
-          <button onClick={() => { setSearch(""); setSuccess("all"); setStartDate(""); setEndDate(""); setPage(1); }} style={{padding:"8px 14px",borderRadius:8,border:"1px solid rgba(94,242,255,0.2)",background:"transparent",color:"#9bb4ca",cursor:"pointer"}}>Limpiar</button>
+          <button onClick={() => { setSearch(""); setSuccess("all"); setStartDate(""); setEndDate(""); setPage(1); }} style={{padding:"8px 14px",borderRadius:8,border:"1px solid rgba(0,242,254,0.2)",background:"transparent",color:"#9bb4ca",cursor:"pointer"}}>Limpiar</button>
         </div>
       </div>
 
@@ -107,7 +107,7 @@ export default function AdminLoginLogsPage() {
             <div style={{overflowX:"auto"}}>
               <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
                 <thead>
-                  <tr style={{borderBottom:"1px solid rgba(94,242,255,0.15)"}}>
+                  <tr style={{borderBottom:"1px solid rgba(0,242,254,0.15)"}}>
                     <th style={{textAlign:"left",padding:"8px",color:"#9bb4ca",fontWeight:500}}>Fecha</th>
                     <th style={{textAlign:"left",padding:"8px",color:"#9bb4ca",fontWeight:500}}>Empleado</th>
                     <th style={{textAlign:"left",padding:"8px",color:"#9bb4ca",fontWeight:500}}>Resultado</th>
@@ -120,7 +120,7 @@ export default function AdminLoginLogsPage() {
                       <td style={{padding:"8px",color:"white",whiteSpace:"nowrap"}}>{new Date(l.created_at).toLocaleString("es-MX")}</td>
                       <td style={{padding:"8px",color:"white"}}>{l.employee_name || <span style={{color:"#9bb4ca"}}>—</span>}</td>
                       <td style={{padding:"8px"}}>
-                        <span style={{color: l.success ? "#9cffb5" : "#ff8c9e"}}>
+                        <span style={{color: l.success ? "#b388ff" : "#ff8c9e"}}>
                           {l.success ? "✓ Exitoso" : "✗ Fallido"}
                         </span>
                       </td>
@@ -130,12 +130,12 @@ export default function AdminLoginLogsPage() {
                 </tbody>
               </table>
             </div>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:16,paddingTop:12,borderTop:"1px solid rgba(94,242,255,0.1)"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:16,paddingTop:12,borderTop:"1px solid rgba(0,242,254,0.1)"}}>
               <span style={{color:"#9bb4ca",fontSize:12}}>{total} registro{total !== 1 ? "s" : ""}</span>
               <div style={{display:"flex",gap:8,alignItems:"center"}}>
-                <button disabled={page <= 1} onClick={() => setPage(p => p - 1)} style={{padding:"6px 12px",borderRadius:8,border:"1px solid rgba(94,242,255,0.2)",background:"transparent",color: page <= 1 ? "#3a5568" : "#5ef2ff",cursor: page <= 1 ? "default" : "pointer",fontSize:12}}>Anterior</button>
+                <button disabled={page <= 1} onClick={() => setPage(p => p - 1)} style={{padding:"6px 12px",borderRadius:8,border:"1px solid rgba(0,242,254,0.2)",background:"transparent",color: page <= 1 ? "#3a5568" : "#00f2fe",cursor: page <= 1 ? "default" : "pointer",fontSize:12}}>Anterior</button>
                 <span style={{color:"white",fontSize:13}}>{page} / {totalPages}</span>
-                <button disabled={page >= totalPages} onClick={() => setPage(p => p + 1)} style={{padding:"6px 12px",borderRadius:8,border:"1px solid rgba(94,242,255,0.2)",background:"transparent",color: page >= totalPages ? "#3a5568" : "#5ef2ff",cursor: page >= totalPages ? "default" : "pointer",fontSize:12}}>Siguiente</button>
+                <button disabled={page >= totalPages} onClick={() => setPage(p => p + 1)} style={{padding:"6px 12px",borderRadius:8,border:"1px solid rgba(0,242,254,0.2)",background:"transparent",color: page >= totalPages ? "#3a5568" : "#00f2fe",cursor: page >= totalPages ? "default" : "pointer",fontSize:12}}>Siguiente</button>
               </div>
             </div>
           </>

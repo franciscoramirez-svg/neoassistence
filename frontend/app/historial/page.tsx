@@ -51,24 +51,24 @@ export default function HistorialPage() {
     <main className="page-shell">
       <style>{`
         .tab-btn { flex:1; padding:10px; border-radius:10px; cursor:pointer; font-size:12px; transition:all 0.2s; }
-        .tab-btn:hover { background:rgba(94,242,255,0.08); }
+        .tab-btn:hover { background:rgba(0,242,254,0.08); }
       `}</style>
       <nav style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 0",marginBottom:8}}>
-        <Link href={goBack} style={{color:"#5ef2ff",fontSize:13,textDecoration:"none"}}>← Volver</Link>
+        <Link href={goBack} style={{color:"#00f2fe",fontSize:13,textDecoration:"none"}}>← Volver</Link>
         <button onClick={()=>{localStorage.removeItem("neoassistence_user");router.push("/login")}} style={{background:"none",border:"none",color:"#ff8c9e",cursor:"pointer"}}>Cerrar sesión</button>
       </nav>
 
       <div className="glass" style={{padding:24,marginBottom:20}}>
-        <p style={{color:"#5ef2ff",textTransform:"uppercase",letterSpacing:"0.18em"}}>Mi historial</p>
+        <p style={{color:"#00f2fe",textTransform:"uppercase",letterSpacing:"0.18em"}}>Mi historial</p>
         <h1 style={{margin:"8px 0"}}>{user.name}</h1>
       </div>
 
       <div style={{display:"flex",gap:6,marginBottom:20,flexWrap:"wrap"}}>
         {(["records", "permisos", "incidencias", "puntualidad"] as const).map(t => (
           <button key={t} className="tab-btn" onClick={() => setTab(t)} style={{
-            border: tab === t ? "1px solid rgba(94,242,255,0.4)" : "1px solid rgba(255,255,255,0.1)",
-            background: tab === t ? "rgba(94,242,255,0.12)" : "transparent",
-            color: tab === t ? "#5ef2ff" : "#9bb4ca",
+            border: tab === t ? "1px solid rgba(0,242,254,0.4)" : "1px solid rgba(255,255,255,0.1)",
+            background: tab === t ? "rgba(0,242,254,0.12)" : "transparent",
+            color: tab === t ? "#00f2fe" : "#9bb4ca",
           }}>
             {t === "records" ? "📋 Asistencia" : t === "permisos" ? "🏖️ Permisos" : t === "incidencias" ? "⚠️ Incidencias" : "📈 Puntualidad"}
           </button>
@@ -82,7 +82,7 @@ export default function HistorialPage() {
           records.length === 0 ? <p style={{color:"#9bb4ca",textAlign:"center"}}>Sin registros</p> : (
             <div style={{overflowX:"auto"}}>
               <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
-                <thead><tr style={{borderBottom:"1px solid rgba(94,242,255,0.15)"}}>
+                <thead><tr style={{borderBottom:"1px solid rgba(0,242,254,0.15)"}}>
                   <th style={{textAlign:"left",padding:"8px",color:"#9bb4ca",fontWeight:500}}>Fecha</th>
                   <th style={{textAlign:"left",padding:"8px",color:"#9bb4ca",fontWeight:500}}>Tipo</th>
                   <th style={{textAlign:"center",padding:"8px",color:"#9bb4ca",fontWeight:500}}>Estatus</th>
@@ -92,7 +92,7 @@ export default function HistorialPage() {
                     <tr key={r.id} style={{borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
                       <td style={{padding:"8px",color:"white"}}>{new Date(r.fecha_hora).toLocaleString("es-MX")}</td>
                       <td style={{padding:"8px",color:"#9bb4ca"}}>{r.tipo}</td>
-                      <td style={{padding:"8px",textAlign:"center",color: r.estatus === "A Tiempo" ? "#9cffb5" : r.estatus?.toLowerCase().includes("retardo") ? "#ff8c9e" : r.estatus === "Permiso" ? "#5ef2ff" : "#ffcc5e"}}>{r.estatus}</td>
+                      <td style={{padding:"8px",textAlign:"center",color: r.estatus === "A Tiempo" ? "#b388ff" : r.estatus?.toLowerCase().includes("retardo") ? "#ff8c9e" : r.estatus === "Permiso" ? "#00f2fe" : "#ffcc5e"}}>{r.estatus}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -103,7 +103,7 @@ export default function HistorialPage() {
           permisos.length === 0 ? <p style={{color:"#9bb4ca",textAlign:"center"}}>Sin permisos</p> : (
             <div style={{overflowX:"auto"}}>
               <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
-                <thead><tr style={{borderBottom:"1px solid rgba(94,242,255,0.15)"}}>
+                <thead><tr style={{borderBottom:"1px solid rgba(0,242,254,0.15)"}}>
                   <th style={{textAlign:"left",padding:"8px",color:"#9bb4ca",fontWeight:500}}>Tipo</th>
                   <th style={{textAlign:"left",padding:"8px",color:"#9bb4ca",fontWeight:500}}>Inicio</th>
                   <th style={{textAlign:"left",padding:"8px",color:"#9bb4ca",fontWeight:500}}>Fin</th>
@@ -116,7 +116,7 @@ export default function HistorialPage() {
                       <td style={{padding:"8px",color:"white"}}>{p.tipo === "vacacion" ? "Vacación" : "Permiso"}</td>
                       <td style={{padding:"8px",color:"#9bb4ca"}}>{p.fecha_inicio}</td>
                       <td style={{padding:"8px",color:"#9bb4ca"}}>{p.fecha_fin}</td>
-                      <td style={{padding:"8px",textAlign:"center",color: p.estatus === "aprobado" ? "#9cffb5" : p.estatus === "rechazado" ? "#ff8c9e" : "#ffcc5e"}}>{p.estatus}</td>
+                      <td style={{padding:"8px",textAlign:"center",color: p.estatus === "aprobado" ? "#b388ff" : p.estatus === "rechazado" ? "#ff8c9e" : "#ffcc5e"}}>{p.estatus}</td>
                       <td style={{padding:"8px",color:"#9bb4ca"}}>{p.admin_comentario || "—"}</td>
                     </tr>
                   ))}
@@ -128,7 +128,7 @@ export default function HistorialPage() {
           incidencias.length === 0 ? <p style={{color:"#9bb4ca",textAlign:"center"}}>Sin incidencias</p> : (
             <div style={{overflowX:"auto"}}>
               <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
-                <thead><tr style={{borderBottom:"1px solid rgba(94,242,255,0.15)"}}>
+                <thead><tr style={{borderBottom:"1px solid rgba(0,242,254,0.15)"}}>
                   <th style={{textAlign:"left",padding:"8px",color:"#9bb4ca",fontWeight:500}}>Tipo</th>
                   <th style={{textAlign:"left",padding:"8px",color:"#9bb4ca",fontWeight:500}}>Fecha</th>
                   <th style={{textAlign:"left",padding:"8px",color:"#9bb4ca",fontWeight:500}}>Motivo</th>
@@ -140,7 +140,7 @@ export default function HistorialPage() {
                       <td style={{padding:"8px",color:"white"}}>{i.tipo}</td>
                       <td style={{padding:"8px",color:"#9bb4ca"}}>{i.fecha}</td>
                       <td style={{padding:"8px",color:"#9bb4ca",maxWidth:200,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{i.motivo || "—"}</td>
-                      <td style={{padding:"8px",textAlign:"center",color: i.estatus === "aprobada" ? "#9cffb5" : i.estatus === "rechazada" ? "#ff8c9e" : "#ffcc5e"}}>{i.estatus}</td>
+                      <td style={{padding:"8px",textAlign:"center",color: i.estatus === "aprobada" ? "#b388ff" : i.estatus === "rechazada" ? "#ff8c9e" : "#ffcc5e"}}>{i.estatus}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -156,15 +156,15 @@ export default function HistorialPage() {
                   <LineChart data={puntualidad}>
                     <XAxis dataKey="mes" tick={{fill:"#9bb4ca",fontSize:11}} axisLine={false} tickLine={false} />
                     <YAxis tick={{fill:"#9bb4ca",fontSize:11}} axisLine={false} tickLine={false} unit="%" domain={[0, 100]} />
-                    <Tooltip contentStyle={{background:"#0a1526",border:"1px solid rgba(94,242,255,0.2)",borderRadius:8,color:"white"}}
+                    <Tooltip contentStyle={{background:"#0a1526",border:"1px solid rgba(0,242,254,0.2)",borderRadius:8,color:"white"}}
                       formatter={(value: any) => [`${value}%`, "Puntualidad"]} />
-                    <Line type="monotone" dataKey="puntualidad_pct" stroke="#9cffb5" strokeWidth={2} dot={{fill:"#9cffb5",r:4}} />
+                    <Line type="monotone" dataKey="puntualidad_pct" stroke="#b388ff" strokeWidth={2} dot={{fill:"#b388ff",r:4}} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
               <div style={{overflowX:"auto"}}>
                 <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
-                  <thead><tr style={{borderBottom:"1px solid rgba(94,242,255,0.15)"}}>
+                  <thead><tr style={{borderBottom:"1px solid rgba(0,242,254,0.15)"}}>
                     <th style={{textAlign:"left",padding:"8px",color:"#9bb4ca",fontWeight:500}}>Mes</th>
                     <th style={{textAlign:"center",padding:"8px",color:"#9bb4ca",fontWeight:500}}>Total</th>
                     <th style={{textAlign:"center",padding:"8px",color:"#9bb4ca",fontWeight:500}}>A Tiempo</th>
@@ -176,9 +176,9 @@ export default function HistorialPage() {
                       <tr key={m.mes} style={{borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
                         <td style={{padding:"8px",color:"white"}}>{m.mes}</td>
                         <td style={{padding:"8px",textAlign:"center",color:"#9bb4ca"}}>{m.total_registros}</td>
-                        <td style={{padding:"8px",textAlign:"center",color:"#9cffb5"}}>{m.a_tiempo}</td>
+                        <td style={{padding:"8px",textAlign:"center",color:"#b388ff"}}>{m.a_tiempo}</td>
                         <td style={{padding:"8px",textAlign:"center",color:m.retardos > 0 ? "#ff8c9e" : "#9bb4ca"}}>{m.retardos}</td>
-                        <td style={{padding:"8px",textAlign:"center",color:m.puntualidad_pct >= 90 ? "#9cffb5" : m.puntualidad_pct >= 70 ? "#ffcc5e" : "#ff8c9e",fontWeight:"bold"}}>{m.puntualidad_pct}%</td>
+                        <td style={{padding:"8px",textAlign:"center",color:m.puntualidad_pct >= 90 ? "#b388ff" : m.puntualidad_pct >= 70 ? "#ffcc5e" : "#ff8c9e",fontWeight:"bold"}}>{m.puntualidad_pct}%</td>
                       </tr>
                     ))}
                   </tbody>

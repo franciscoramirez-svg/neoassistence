@@ -117,7 +117,7 @@ export default function YTSPage() {
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
         <h1 style={{color:"#d08aff",fontSize:20,margin:0}}>Yo Trabajo Seguro</h1>
         <div style={{display:"flex",gap:8}}>
-          <button onClick={()=>router.push(goBack)} style={{padding:"8px 14px",borderRadius:8,border:"1px solid rgba(94,242,255,0.3)",background:"transparent",color:"#5ef2ff",fontSize:12}}>Volver</button>
+          <button onClick={()=>router.push(goBack)} style={{padding:"8px 14px",borderRadius:8,border:"1px solid rgba(0,242,254,0.3)",background:"transparent",color:"#00f2fe",fontSize:12}}>Volver</button>
           <button onClick={()=>{localStorage.removeItem("neoassistence_user"); router.push("/login");}} style={{padding:"8px 14px",borderRadius:8,border:"1px solid rgba(255,140,158,0.3)",background:"transparent",color:"#ff8c9e",fontSize:12}}>Salir</button>
         </div>
       </div>
@@ -127,7 +127,7 @@ export default function YTSPage() {
         <select
           value={selected}
           onChange={(e) => setSelected(e.target.value)}
-          style={{width:"100%",padding:"10px 14px",borderRadius:10,border:"1px solid rgba(94,242,255,0.25)",background:"rgba(255,255,255,0.05)",color:"white",fontSize:14}}
+          style={{width:"100%",padding:"10px 14px",borderRadius:10,border:"1px solid rgba(0,242,254,0.25)",background:"rgba(255,255,255,0.05)",color:"white",fontSize:14}}
         >
           <option value="">-- Selecciona un mes --</option>
           {mesOptions.map(m => {
@@ -147,7 +147,7 @@ export default function YTSPage() {
             <button onClick={handleUpload} disabled={uploading} style={{padding:"8px 16px",borderRadius:8,border:"1px solid rgba(255,204,94,0.3)",background:"rgba(255,204,94,0.1)",color:uploading?"#9bb4ca":"white",fontSize:13,cursor:"pointer",alignSelf:"flex-start"}}>
               {uploading ? "Subiendo..." : "Subir imagen"}
             </button>
-            {uploadMsg && <p style={{color:uploadMsg.includes("Error")?"#ff8c9e":"#9cffb5",fontSize:12,margin:0}}>{uploadMsg}</p>}
+            {uploadMsg && <p style={{color:uploadMsg.includes("Error")?"#ff8c9e":"#b388ff",fontSize:12,margin:0}}>{uploadMsg}</p>}
           </div>
         )}
       </div>
@@ -155,20 +155,20 @@ export default function YTSPage() {
       <div className="glass" style={{padding:20,borderRadius:16,marginBottom:16}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div>
-            <h2 style={{color:"#5ef2ff",fontSize:15,margin:0}}>Firma diaria</h2>
+            <h2 style={{color:"#00f2fe",fontSize:15,margin:0}}>Firma diaria</h2>
             <p style={{color:"#9bb4ca",fontSize:12,marginTop:4}}>
               {firmadoHoy ? "Ya firmaste hoy ✓" : "Confirma que estás en condiciones de trabajar"}
             </p>
           </div>
           {!firmadoHoy ? (
-            <button onClick={handleFirmar} disabled={firmando} style={{padding:"10px 18px",borderRadius:10,border:"1px solid rgba(156,255,181,0.3)",background:"rgba(156,255,181,0.15)",color:"white",fontSize:13,fontWeight:"bold",cursor:"pointer"}}>
+            <button onClick={handleFirmar} disabled={firmando} style={{padding:"10px 18px",borderRadius:10,border:"1px solid rgba(179,136,255,0.3)",background:"rgba(179,136,255,0.15)",color:"white",fontSize:13,fontWeight:"bold",cursor:"pointer"}}>
               {firmando ? "Firmando..." : "Firmar hoy"}
             </button>
           ) : (
-            <div style={{width:40,height:40,borderRadius:"50%",background:"rgba(156,255,181,0.2)",display:"flex",alignItems:"center",justifyContent:"center",color:"#9cffb5",fontSize:20}}>✓</div>
+            <div style={{width:40,height:40,borderRadius:"50%",background:"rgba(179,136,255,0.2)",display:"flex",alignItems:"center",justifyContent:"center",color:"#b388ff",fontSize:20}}>✓</div>
           )}
         </div>
-        {firmaMsg && <p style={{color:"#9cffb5",fontSize:12,marginTop:8,marginBottom:0}}>{firmaMsg}</p>}
+        {firmaMsg && <p style={{color:"#b388ff",fontSize:12,marginTop:8,marginBottom:0}}>{firmaMsg}</p>}
       </div>
 
       {loading && <div className="skeleton" style={{width:"100%",height:120,borderRadius:16}} />}

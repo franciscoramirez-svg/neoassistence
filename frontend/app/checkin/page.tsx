@@ -281,41 +281,41 @@ export default function CheckInPage() {
   return (
     <main className="page-shell">
       <nav style={{display:"flex",justifyContent:"space-between",padding:"12px 0",marginBottom:16}}>
-        <Link href={user.role === "admin" ? "/dashboard" : "/login"} style={{color:"#5ef2ff",textDecoration:"none"}}>← Volver</Link>
+        <Link href={user.role === "admin" ? "/dashboard" : "/login"} style={{color:"#00f2fe",textDecoration:"none"}}>← Volver</Link>
         <button onClick={()=>{localStorage.removeItem("neoassistence_user");router.push("/login")}} style={{background:"none",border:"none",color:"#9bb4ca",cursor:"pointer"}}>Cerrar sesión</button>
       </nav>
 
       <div className="glass" style={{padding:24,marginBottom:24}}>
-        <p style={{color:"#5ef2ff",textTransform:"uppercase",letterSpacing:"0.18em"}}>Check-in</p>
+        <p style={{color:"#00f2fe",textTransform:"uppercase",letterSpacing:"0.18em"}}>Check-in</p>
         <h1 style={{margin:"8px 0"}}>Registro de asistencia</h1>
         <p style={{color:"#9bb4ca"}}>Bienvenido, <strong>{user.name}</strong></p>
-        {qrBranchName && <p style={{color:"#5ef2ff",marginTop:8}}>📍 Sucursal: {qrBranchName}</p>}
+        {qrBranchName && <p style={{color:"#00f2fe",marginTop:8}}>📍 Sucursal: {qrBranchName}</p>}
       </div>
 
       <section style={{display:"flex",gap:12,marginBottom:16}}>
-        <button onClick={()=>{setQrMode(false);setQrBranchId(null);setQrBranchName("")}} style={{flex:1,padding:12,borderRadius:12,border:qrMode?"1px solid rgba(94,242,255,0.18)":"1px solid rgba(94,242,255,0.28)",background:qrMode?"rgba(10,21,38,0.8)":"linear-gradient(135deg, rgba(94,242,255,0.14), rgba(156,255,181,0.08))",color:"white"}}>📍 GPS</button>
-        <button onClick={()=>{setQrMode(true)}} style={{flex:1,padding:12,borderRadius:12,border:!qrMode?"1px solid rgba(94,242,255,0.18)":"1px solid rgba(94,242,255,0.28)",background:!qrMode?"rgba(10,21,38,0.8)":"linear-gradient(135deg, rgba(94,242,255,0.14), rgba(156,255,181,0.08))",color:"white"}}>📷 QR</button>
+        <button onClick={()=>{setQrMode(false);setQrBranchId(null);setQrBranchName("")}} style={{flex:1,padding:12,borderRadius:12,border:qrMode?"1px solid rgba(0,242,254,0.18)":"1px solid rgba(0,242,254,0.28)",background:qrMode?"rgba(10,21,38,0.8)":"linear-gradient(135deg, rgba(0,242,254,0.14), rgba(179,136,255,0.08))",color:"white"}}>📍 GPS</button>
+        <button onClick={()=>{setQrMode(true)}} style={{flex:1,padding:12,borderRadius:12,border:!qrMode?"1px solid rgba(0,242,254,0.18)":"1px solid rgba(0,242,254,0.28)",background:!qrMode?"rgba(10,21,38,0.8)":"linear-gradient(135deg, rgba(0,242,254,0.14), rgba(179,136,255,0.08))",color:"white"}}>📷 QR</button>
       </section>
 
       <section className="glass" style={{maxWidth:720,padding:24}}>
         <div style={{marginBottom:16}}>
           <label style={{display:"block",marginBottom:8}}>Ubicación</label>
-          {lat && lon ? <p style={{color:"#9cffb5",margin:0}}>📍 {lat.toFixed(6)}, {lon.toFixed(6)}</p> : locationLoading ? <p style={{color:"#9bb4ca",margin:0}}>Obteniendo ubicación...</p> : locationError ? <p style={{color:"#ff8c9e",margin:0}}>{locationError}</p> : null}
-          {!qrMode && <button onClick={requestLocation} style={{marginTop:8,padding:"8px 12px",borderRadius:8,border:"1px solid rgba(94,242,255,0.18)",background:"rgba(10,21,38,0.8)",color:"#9bb4ca",cursor:"pointer"}}>Actualizar ubicación</button>}
+          {lat && lon ? <p style={{color:"#b388ff",margin:0}}>📍 {lat.toFixed(6)}, {lon.toFixed(6)}</p> : locationLoading ? <p style={{color:"#9bb4ca",margin:0}}>Obteniendo ubicación...</p> : locationError ? <p style={{color:"#ff8c9e",margin:0}}>{locationError}</p> : null}
+          {!qrMode && <button onClick={requestLocation} style={{marginTop:8,padding:"8px 12px",borderRadius:8,border:"1px solid rgba(0,242,254,0.18)",background:"rgba(10,21,38,0.8)",color:"#9bb4ca",cursor:"pointer"}}>Actualizar ubicación</button>}
         </div>
 
         {faceVerifying && (
           <div style={{marginBottom:16,textAlign:"center",position:"relative",maxWidth:320,marginLeft:"auto",marginRight:"auto"}}>
-            <video ref={selfieVideoRef} autoPlay playsInline muted style={{width:"100%",maxWidth:320,aspectRatio:"1/1",borderRadius:"50%",border:"3px solid #5ef2ff",objectFit:"cover"}} />
-            <p style={{color:"#5ef2ff",textAlign:"center",marginTop:4,fontSize:12}}>Verificando rostro...</p>
+            <video ref={selfieVideoRef} autoPlay playsInline muted style={{width:"100%",maxWidth:320,aspectRatio:"1/1",borderRadius:"50%",border:"3px solid #00f2fe",objectFit:"cover"}} />
+            <p style={{color:"#00f2fe",textAlign:"center",marginTop:4,fontSize:12}}>Verificando rostro...</p>
           </div>
         )}
 
         {faceStatus && !faceVerifying && (
           <div style={{marginBottom:16,textAlign:"center"}}>
-            <p style={{color:faceStatus.includes("✓")?"#9cffb5":"#ffcc5e",fontSize:12}}>{faceStatus}</p>
+            <p style={{color:faceStatus.includes("✓")?"#b388ff":"#ffcc5e",fontSize:12}}>{faceStatus}</p>
             {!faceStatus.includes("✓") && !checkingIn && (
-              <button onClick={() => startCheckInFlow(pendingType || "Entrada")} style={{padding:"8px 16px",borderRadius:8,border:"1px solid rgba(94,242,255,0.3)",background:"rgba(10,21,38,0.8)",color:"#5ef2ff",fontSize:12,marginTop:8}}>📷 Reintentar</button>
+              <button onClick={() => startCheckInFlow(pendingType || "Entrada")} style={{padding:"8px 16px",borderRadius:8,border:"1px solid rgba(0,242,254,0.3)",background:"rgba(10,21,38,0.8)",color:"#00f2fe",fontSize:12,marginTop:8}}>📷 Reintentar</button>
             )}
           </div>
         )}
@@ -331,10 +331,10 @@ export default function CheckInPage() {
         )}
 
         {qrMode && qrBranchId && (
-          <div style={{marginBottom:16,padding:16,borderRadius:12,background:"rgba(94,242,255,0.08)",border:"1px solid rgba(94,242,255,0.3)",textAlign:"center"}}>
-            <p style={{color:"#5ef2ff",fontWeight:"bold",margin:"0 0 4px"}}>✅ QR detectado</p>
+          <div style={{marginBottom:16,padding:16,borderRadius:12,background:"rgba(0,242,254,0.08)",border:"1px solid rgba(0,242,254,0.3)",textAlign:"center"}}>
+            <p style={{color:"#00f2fe",fontWeight:"bold",margin:"0 0 4px"}}>✅ QR detectado</p>
             <p style={{color:"#9bb4ca",margin:0}}>{qrBranchName || "Sucursal"}</p>
-            <button onClick={()=>{setQrBranchId(null);setQrBranchName("");setQrMode(true)}} style={{marginTop:8,padding:"6px 12px",borderRadius:6,border:"1px solid rgba(94,242,255,0.2)",background:"transparent",color:"#9bb4ca",fontSize:11,cursor:"pointer"}}>Escanear otro</button>
+            <button onClick={()=>{setQrBranchId(null);setQrBranchName("");setQrMode(true)}} style={{marginTop:8,padding:"6px 12px",borderRadius:6,border:"1px solid rgba(0,242,254,0.2)",background:"transparent",color:"#9bb4ca",fontSize:11,cursor:"pointer"}}>Escanear otro</button>
           </div>
         )}
 
@@ -349,10 +349,10 @@ export default function CheckInPage() {
         )}
 
         {!showJustification && <div style={{display:"flex",gap:16}}>
-          <button onClick={()=>startCheckInFlow("Entrada")} disabled={!lat||!lon||faceVerifying||checkingIn} style={{flex:1,padding:18,borderRadius:18,border:"1px solid rgba(94,242,255,0.28)",background:"linear-gradient(135deg, rgba(94,242,255,0.14), rgba(156,255,181,0.08))",color:"white",cursor:lat&&lon?"pointer":"not-allowed",opacity:lat&&lon?1:0.5}}>📥 Entrada</button>
-          <button onClick={()=>startCheckInFlow("Salida")} disabled={!lat||!lon||faceVerifying||checkingIn} style={{flex:1,padding:18,borderRadius:18,border:"1px solid rgba(94,242,255,0.18)",background:"rgba(10,21,38,0.8)",color:"white",cursor:lat&&lon?"pointer":"not-allowed",opacity:lat&&lon?1:0.5}}>📤 Salida</button>
+          <button onClick={()=>startCheckInFlow("Entrada")} disabled={!lat||!lon||faceVerifying||checkingIn} style={{flex:1,padding:18,borderRadius:18,border:"1px solid rgba(0,242,254,0.28)",background:"linear-gradient(135deg, rgba(0,242,254,0.14), rgba(179,136,255,0.08))",color:"white",cursor:lat&&lon?"pointer":"not-allowed",opacity:lat&&lon?1:0.5}}>📥 Entrada</button>
+          <button onClick={()=>startCheckInFlow("Salida")} disabled={!lat||!lon||faceVerifying||checkingIn} style={{flex:1,padding:18,borderRadius:18,border:"1px solid rgba(0,242,254,0.18)",background:"rgba(10,21,38,0.8)",color:"white",cursor:lat&&lon?"pointer":"not-allowed",opacity:lat&&lon?1:0.5}}>📤 Salida</button>
         </div>}
-        {message ? <p style={{color:"#9cffb5",marginTop:16}}>{message}</p> : null}
+        {message ? <p style={{color:"#b388ff",marginTop:16}}>{message}</p> : null}
         {error && !showJustification ? <p style={{color:"#ff8c9e",marginTop:16,fontWeight:"bold",fontSize:14,background:"rgba(255,140,158,0.1)",padding:12,borderRadius:12,border:"1px solid rgba(255,140,158,0.3)"}}>{error}</p> : null}
       </section>
     </main>

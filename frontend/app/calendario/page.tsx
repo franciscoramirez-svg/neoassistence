@@ -56,20 +56,20 @@ export default function CalendarioPage() {
   return (
     <main className="page-shell">
       <nav style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 0",marginBottom:8}}>
-        <Link href={goBack} style={{color:"#5ef2ff",fontSize:13,textDecoration:"none"}}>← Volver</Link>
+        <Link href={goBack} style={{color:"#00f2fe",fontSize:13,textDecoration:"none"}}>← Volver</Link>
         <button onClick={()=>{localStorage.removeItem("neoassistence_user");router.push("/login")}} style={{background:"none",border:"none",color:"#ff8c9e",cursor:"pointer"}}>Cerrar sesión</button>
       </nav>
 
       <div className="glass" style={{padding:24,marginBottom:20}}>
-        <p style={{color:"#5ef2ff",textTransform:"uppercase",letterSpacing:"0.18em"}}>Asistencia</p>
+        <p style={{color:"#00f2fe",textTransform:"uppercase",letterSpacing:"0.18em"}}>Asistencia</p>
         <h1 style={{margin:"8px 0"}}>Calendario mensual</h1>
       </div>
 
       <div className="glass" style={{padding:24}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
-          <button onClick={prevMonth} style={{padding:"8px 14px",borderRadius:8,border:"1px solid rgba(94,242,255,0.2)",background:"transparent",color:"#5ef2ff",cursor:"pointer"}}>← {MONTHS[month === 0 ? 11 : month - 1].slice(0,3)}</button>
+          <button onClick={prevMonth} style={{padding:"8px 14px",borderRadius:8,border:"1px solid rgba(0,242,254,0.2)",background:"transparent",color:"#00f2fe",cursor:"pointer"}}>← {MONTHS[month === 0 ? 11 : month - 1].slice(0,3)}</button>
           <h2 style={{margin:0,color:"white",fontSize:18}}>{MONTHS[month]} {year}</h2>
-          <button onClick={nextMonth} style={{padding:"8px 14px",borderRadius:8,border:"1px solid rgba(94,242,255,0.2)",background:"transparent",color:"#5ef2ff",cursor:"pointer"}}>{MONTHS[month === 11 ? 0 : month + 1].slice(0,3)} →</button>
+          <button onClick={nextMonth} style={{padding:"8px 14px",borderRadius:8,border:"1px solid rgba(0,242,254,0.2)",background:"transparent",color:"#00f2fe",cursor:"pointer"}}>{MONTHS[month === 11 ? 0 : month + 1].slice(0,3)} →</button>
         </div>
 
         {loading ? (
@@ -91,7 +91,7 @@ export default function CalendarioPage() {
                   <div key={day} style={{
                     aspectRatio:"1", display:"flex", alignItems:"center", justifyContent:"center",
                     borderRadius:8, background: color, color: status ? "#0a1526" : (color === "transparent" ? "#9bb4ca" : "#9bb4ca"),
-                    fontWeight: isToday ? "bold" : "normal", border: isToday ? "2px solid #5ef2ff" : "none",
+                    fontWeight: isToday ? "bold" : "normal", border: isToday ? "2px solid #00f2fe" : "none",
                     fontSize: 13, position: "relative"
                   }}>
                     {day}
@@ -101,9 +101,9 @@ export default function CalendarioPage() {
               })}
             </div>
             <div style={{display:"flex",gap:16,justifyContent:"center",marginTop:16,flexWrap:"wrap"}}>
-              <span style={{fontSize:12,color:"#9bb4ca"}}><span style={{display:"inline-block",width:12,height:12,borderRadius:3,background:"#9cffb5",marginRight:4,verticalAlign:"middle"}} /> Presente</span>
+              <span style={{fontSize:12,color:"#9bb4ca"}}><span style={{display:"inline-block",width:12,height:12,borderRadius:3,background:"#b388ff",marginRight:4,verticalAlign:"middle"}} /> Presente</span>
               <span style={{fontSize:12,color:"#9bb4ca"}}><span style={{display:"inline-block",width:12,height:12,borderRadius:3,background:"#ff8c9e",marginRight:4,verticalAlign:"middle"}} /> Retardo</span>
-              <span style={{fontSize:12,color:"#9bb4ca"}}><span style={{display:"inline-block",width:12,height:12,borderRadius:3,background:"#5ef2ff",marginRight:4,verticalAlign:"middle"}} /> Permiso</span>
+              <span style={{fontSize:12,color:"#9bb4ca"}}><span style={{display:"inline-block",width:12,height:12,borderRadius:3,background:"#00f2fe",marginRight:4,verticalAlign:"middle"}} /> Permiso</span>
               <span style={{fontSize:12,color:"#9bb4ca"}}><span style={{display:"inline-block",width:12,height:12,borderRadius:3,background:"#1a2a3a",marginRight:4,verticalAlign:"middle"}} /> Sin registro</span>
             </div>
           </>

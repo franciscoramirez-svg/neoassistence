@@ -54,9 +54,9 @@ export default function SupervisorPage() {
   const totalHoy = hoyRecords.length;
 
   const stats = [
-    { label: "Total hoy", value: totalHoy, color: "#5ef2ff" },
-    { label: "Entradas", value: entradas, color: "#9cffb5" },
-    { label: "A tiempo", value: aTiempo, color: "#9cffb5" },
+    { label: "Total hoy", value: totalHoy, color: "#00f2fe" },
+    { label: "Entradas", value: entradas, color: "#b388ff" },
+    { label: "A tiempo", value: aTiempo, color: "#b388ff" },
     { label: "Retardos", value: retardos, color: "#ff8c9e" },
     { label: "Salidas", value: salidas, color: "#d08aff" },
   ];
@@ -91,7 +91,7 @@ export default function SupervisorPage() {
             <button onClick={()=>router.push("/yts")} style={{width:"100%",padding:"16px",borderRadius:14,border:"1px solid rgba(255,204,94,0.3)",background:"rgba(255,204,94,0.08)",color:"white",fontSize:15,fontWeight:"bold",cursor:"pointer"}}>
               Yo Trabajo Seguro
             </button>
-            <button onClick={()=>router.push("/permisos")} style={{width:"100%",padding:"16px",borderRadius:14,border:"1px solid rgba(156,255,181,0.3)",background:"rgba(156,255,181,0.08)",color:"white",fontSize:15,fontWeight:"bold",cursor:"pointer"}}>
+            <button onClick={()=>router.push("/permisos")} style={{width:"100%",padding:"16px",borderRadius:14,border:"1px solid rgba(179,136,255,0.3)",background:"rgba(179,136,255,0.08)",color:"white",fontSize:15,fontWeight:"bold",cursor:"pointer"}}>
               Permisos y Vacaciones
             </button>
           </div>
